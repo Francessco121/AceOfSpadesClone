@@ -11,8 +11,10 @@ using System.IO;
  * Tristan Smith
 */
 
-namespace AceOfSpades.Editor.Models {
-    public class EditorUI {
+namespace AceOfSpades.Editor.Models
+{
+    public class EditorUI
+    {
         GUIArea area;
         MasterRenderer renderer;
         EditorScreen screen;
@@ -27,7 +29,8 @@ namespace AceOfSpades.Editor.Models {
         ToolBarHelper TopBarHelper;
         bool setup;
 
-        public EditorUI(MasterRenderer renderer, EditorScreen screen) {
+        public EditorUI(MasterRenderer renderer, EditorScreen screen)
+        {
             this.renderer = renderer;
             this.screen = screen;
 
@@ -37,20 +40,22 @@ namespace AceOfSpades.Editor.Models {
             renderer.Sprites.Add(area);
 
             theme = EditorTheme.Glass;
-            
+
 
             GenBar(renderer.ScreenWidth);
 
             openFileWindow = new FileBrowserWindow(gsys, theme, new UDim2(0.75f, 0, 0.75f, 0), "Open Model",
                 FileBrowserMode.OpenFile, new string[] { ".aosm" },
-                (window) => {
+                (window) =>
+                {
                     if (File.Exists(window.FileName))
                         screen.LoadModel(window.FileName);
                 });
 
             saveFileWindow = new FileBrowserWindow(gsys, theme, new UDim2(0.75f, 0, 0.75f, 0), "Save Model",
                 FileBrowserMode.Save, new string[] { ".aosm" },
-                (window) => {
+                (window) =>
+                {
                     string fullPath = Path.Combine(window.CurrentDirectory, window.FileName);
 
                     if (!Path.HasExtension(fullPath))
@@ -68,14 +73,18 @@ namespace AceOfSpades.Editor.Models {
         /// </summary>
         /// <param name="dropDown"></param>
         /// <param name="button"></param>
-        void SetGfxOption(GUIDropDown dropDown, GUIDropDownButton button) {
+        void SetGfxOption(GUIDropDown dropDown, GUIDropDownButton button)
+        {
             if (button.Value == null)
                 return; //it should never be null but just in case...
 
-            if (button.Value.GetType() == typeof(int)) {
+            if (button.Value.GetType() == typeof(int))
+            {
                 var SubMenu = TopBarHelper.GetSubMenus();
-                foreach (KeyValuePair<string, GUIDropDownButton> btn in SubMenu["PCF Samples"]) {
-                    if (btn.Value.Toggled) {
+                foreach (KeyValuePair<string, GUIDropDownButton> btn in SubMenu["PCF Samples"])
+                {
+                    if (btn.Value.Toggled)
+                    {
                         btn.Value.Toggled = false; //only toggle off if on
                         break; //prevent more than whats needed
                     }
@@ -84,77 +93,91 @@ namespace AceOfSpades.Editor.Models {
                 button.Toggled = true;
             }
 
-            if (button.Value.GetType() == typeof(FogQuality)) {
+            if (button.Value.GetType() == typeof(FogQuality))
+            {
                 FogQuality myType = (FogQuality)button.Value;
 
 
                 var SubMenu = TopBarHelper.GetSubMenus();
-                foreach (KeyValuePair<string, GUIDropDownButton> btn in SubMenu["Fog"]) {
-                    if (btn.Value.Toggled) {
+                foreach (KeyValuePair<string, GUIDropDownButton> btn in SubMenu["Fog"])
+                {
+                    if (btn.Value.Toggled)
+                    {
                         btn.Value.Toggled = false; //only toggle off if on
                         break; //prevent more than whats needed
                     }
                 }
 
-                switch (myType) {
-                    case FogQuality.Off: {
-                        bool currentSetting = renderer.FogEnabled;
-                        renderer.FogEnabled = !currentSetting;
-                        button.Toggled = currentSetting; //dont need to invert the bool, all buttons are false by default due to the foreach loop
-                        break;
-                    }
+                switch (myType)
+                {
+                    case FogQuality.Off:
+                        {
+                            bool currentSetting = renderer.FogEnabled;
+                            renderer.FogEnabled = !currentSetting;
+                            button.Toggled = currentSetting; //dont need to invert the bool, all buttons are false by default due to the foreach loop
+                            break;
+                        }
 
-                    case FogQuality.Low: {
-                        renderer.FogEnabled = true;
-                        renderer.GFXSettings.FogQuality = FogQuality.Low;
-                        button.Toggled = true;
-                        break;
-                    }
+                    case FogQuality.Low:
+                        {
+                            renderer.FogEnabled = true;
+                            renderer.GFXSettings.FogQuality = FogQuality.Low;
+                            button.Toggled = true;
+                            break;
+                        }
 
-                    case FogQuality.Medium: {
-                        renderer.FogEnabled = true;
-                        renderer.GFXSettings.FogQuality = FogQuality.Medium;
-                        button.Toggled = true;
-                        break;
-                    }
+                    case FogQuality.Medium:
+                        {
+                            renderer.FogEnabled = true;
+                            renderer.GFXSettings.FogQuality = FogQuality.Medium;
+                            button.Toggled = true;
+                            break;
+                        }
 
-                    case FogQuality.High: {
-                        renderer.FogEnabled = true;
-                        renderer.GFXSettings.FogQuality = FogQuality.High;
-                        button.Toggled = true;
-                        break;
-                    }
+                    case FogQuality.High:
+                        {
+                            renderer.FogEnabled = true;
+                            renderer.GFXSettings.FogQuality = FogQuality.High;
+                            button.Toggled = true;
+                            break;
+                        }
                 }
             }
 
-            if (button.Value.GetType() == typeof(gfxType)) { //check for enum gfxType
+            if (button.Value.GetType() == typeof(gfxType))
+            { //check for enum gfxType
                 gfxType myType = (gfxType)button.Value; // /should/ be safe to case as gfxType
-                switch (myType) {
-                    case gfxType.fxaa: {
-                        bool currentSetting = renderer.GFXSettings.ApplyFXAA; //easier to read
-                        renderer.GFXSettings.ApplyFXAA = !currentSetting;
-                        button.Toggled = !currentSetting;
-                        break;
-                    }
+                switch (myType)
+                {
+                    case gfxType.fxaa:
+                        {
+                            bool currentSetting = renderer.GFXSettings.ApplyFXAA; //easier to read
+                            renderer.GFXSettings.ApplyFXAA = !currentSetting;
+                            button.Toggled = !currentSetting;
+                            break;
+                        }
 
-                    case gfxType.shadows: {
-                        bool currentSetting = renderer.GFXSettings.RenderShadows; //easier to read
-                        renderer.GFXSettings.RenderShadows = !currentSetting;
-                        button.Toggled = !currentSetting;
-                        break;
-                    }
+                    case gfxType.shadows:
+                        {
+                            bool currentSetting = renderer.GFXSettings.RenderShadows; //easier to read
+                            renderer.GFXSettings.RenderShadows = !currentSetting;
+                            button.Toggled = !currentSetting;
+                            break;
+                        }
 
-                    case gfxType.wireframe: {
-                        bool currentSetting = renderer.GlobalWireframe; //easier to read
-                        renderer.GlobalWireframe = !currentSetting;
-                        button.Toggled = !currentSetting;
-                        break;
-                    }
+                    case gfxType.wireframe:
+                        {
+                            bool currentSetting = renderer.GlobalWireframe; //easier to read
+                            renderer.GlobalWireframe = !currentSetting;
+                            button.Toggled = !currentSetting;
+                            break;
+                        }
                 }
             }
         }
 
-        enum gfxType {
+        enum gfxType
+        {
             fxaa,
             shadows,
             wireframe
@@ -165,7 +188,8 @@ namespace AceOfSpades.Editor.Models {
         /// </summary>
         /// <param name="rendWidth"></param>
         /// <param name="force">Force Regen?</param>
-        public void GenBar(float rendWidth, bool force = false) {
+        public void GenBar(float rendWidth, bool force = false)
+        {
             if (setup || force) //prevent recreating toolbars unless forced
                 return;
 
@@ -221,7 +245,7 @@ namespace AceOfSpades.Editor.Models {
             rightHandBar.MinSize = new UDim2(0, 90, .75f, 90);
             rightHandBar.MaxSize = rightHandBar.MinSize;
 
-            GUIButton toAddRBar = new GUIButton(UDim2.Zero, new UDim2(1, 0, 1, 0), "Test", theme) { Parent = rightHandBar};
+            GUIButton toAddRBar = new GUIButton(UDim2.Zero, new UDim2(1, 0, 1, 0), "Test", theme) { Parent = rightHandBar };
 
             ToolBarCreator genTop = new ToolBarCreator(theme);
 
@@ -258,11 +282,14 @@ namespace AceOfSpades.Editor.Models {
         /// </summary>
         /// <param name="dropDown"></param>
         /// <param name="button"></param>
-        void showWindowElement(GUIDropDown dropDown, GUIDropDownButton button) {
+        void showWindowElement(GUIDropDown dropDown, GUIDropDownButton button)
+        {
             Type lookingFor = button.Value as Type;
-            for (int i = 0; i < windowElements.Count; i++) {
+            for (int i = 0; i < windowElements.Count; i++)
+            {
                 var item = windowElements[i];
-                if (item != null && item.GetType() == lookingFor) {
+                if (item != null && item.GetType() == lookingFor)
+                {
                     item.Visible = !item.Visible;
                 }
             }
@@ -271,8 +298,8 @@ namespace AceOfSpades.Editor.Models {
         /// <summary>
         /// Setup graphics settings buttons on dropdown to reflect the default
         /// </summary>
-        void SetupDefaultGraphicsSettings() {
-
+        void SetupDefaultGraphicsSettings()
+        {
             setup = true;
 
             renderer.GFXSettings.ApplyFXAA = true;
@@ -289,7 +316,8 @@ namespace AceOfSpades.Editor.Models {
             SubMenu["PCF Samples"]["1"].Toggled = true;
         }
 
-        public void Update(float deltaTime) {
+        public void Update(float deltaTime)
+        {
             if (screen.Model != null)
                 statusLeft.Text = string.Format("Dimensions: {0}x{1}x{2}",
                     screen.Model.Width, screen.Model.Height, screen.Model.Depth);

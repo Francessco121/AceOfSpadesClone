@@ -9,14 +9,16 @@ using Dash.Engine.Graphics;
 
 namespace AceOfSpades.Editor.Models
 {
-    public class MainWindow : GameWindow {
-        public MainWindow()
-            : base("Ace of Spades Model Editor", 1280, 720) { }
-
-
+    public class MainWindow : GameWindow
+    {
         EditorScreen screen;
 
-        protected override void Load() {
+        public MainWindow()
+            : base("Ace of Spades Model Editor", 1280, 720)
+        { }
+
+        protected override void Load()
+        {
             SetVSync(true);
 
             Renderer.AddRenderer(new EntityRenderer(Renderer));
@@ -30,21 +32,22 @@ namespace AceOfSpades.Editor.Models
             Camera.Active.SmoothCamera = true;
 
             screen = new EditorScreen(this, Renderer);
-
         }
 
-        protected override void Draw(float deltaTime) {
+        protected override void Draw(float deltaTime)
+        {
             screen.Draw();
         }
 
-        protected override void Resized(int width, int height) {
-        }
+        protected override void Resized(int width, int height) { }
 
-        protected override void Update(float deltaTime) {
+        protected override void Update(float deltaTime)
+        {
             screen.Update(deltaTime);
         }
 
-        public void UpdateTitle(string fileName) {
+        public void UpdateTitle(string fileName)
+        {
             Title = string.Format("Ace of Spades Model Editor - {0}", fileName != null ? fileName : "<untitled>");
         }
     }

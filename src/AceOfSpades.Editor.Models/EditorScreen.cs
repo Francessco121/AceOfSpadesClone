@@ -7,7 +7,8 @@ using System;
 
 namespace AceOfSpades.Editor.Models
 {
-    public class EditorScreen {
+    public class EditorScreen
+    {
         public string CurrentFile = null;
 
         public VoxelEditorObject Model = null;
@@ -23,14 +24,16 @@ namespace AceOfSpades.Editor.Models
 
         MasterRenderer renderer;
 
-        public EditorScreen(MainWindow window, MasterRenderer renderer) {
+        public EditorScreen(MainWindow window, MasterRenderer renderer)
+        {
             this.Window = window;
             this.renderer = renderer;
             this.entReneder = renderer.GetRenderer3D<EntityRenderer>();
 
             UI = new EditorUI(renderer, this);
 
-            debug = new DashCMDScreen("modeldebug", "", true, (s) => {
+            debug = new DashCMDScreen("modeldebug", "", true, (s) =>
+            {
                 s.WriteLine("Mouse POS {0} {1}", Input.ClampedCursorX, Input.ClampedCursorY);
                 s.WriteLine("Camera POS {0}", Camera.Active.Position);
                 s.WriteLine("VoxelEditorObject POS {0}", (Model != null ? Model.CenterPosition : Vector3.Zero));
@@ -41,7 +44,8 @@ namespace AceOfSpades.Editor.Models
                 s.WriteLine("Shadows: {0}", renderer.GFXSettings.RenderShadows);
                 s.WriteLine("PCF Samples: {0}", renderer.GFXSettings.ShadowPCFSamples);
                 s.WriteLine("Wireframe: {0}", renderer.GlobalWireframe);
-            }) {
+            })
+            {
                 SleepTime = 40,
             };
 
@@ -53,24 +57,28 @@ namespace AceOfSpades.Editor.Models
             LoadNewModel();
         }
 
-        public void SaveModel() {
+        public void SaveModel()
+        {
             if (CurrentFile == null)
                 throw new InvalidOperationException("File has not yet been saved!");
 
             VoxelIO.Save(CurrentFile, Model);
         }
 
-        public void SaveModel(string filePath) {
+        public void SaveModel(string filePath)
+        {
             VoxelIO.Save(filePath, Model);
         }
 
-        public void LoadModel(string name) {
+        public void LoadModel(string name)
+        {
             VoxelObject tmpObj = null;
-            if (VoxelIO.Load(name, out tmpObj)) {
+            if (VoxelIO.Load(name, out tmpObj))
+            {
                 Model = new VoxelEditorObject(tmpObj);
                 Window.UpdateTitle(name);
                 CurrentFile = name;
-                
+
                 if (voxelGrid != null)
                     voxelGrid.Dispose();
 
@@ -79,7 +87,8 @@ namespace AceOfSpades.Editor.Models
             }
         }
 
-        public void LoadNewModel() {
+        public void LoadNewModel()
+        {
             Model = new VoxelEditorObject(new VoxelObject(1f));
             voxelGrid = new VoxelGridObject(Model);
             Camera.Active.Position = Vector3.Zero;
@@ -88,10 +97,12 @@ namespace AceOfSpades.Editor.Models
             CurrentFile = null;
         }
 
-        public void Update(float deltaTime) {
+        public void Update(float deltaTime)
+        {
             UI.Update(deltaTime);
 
-            if (Model != null) {
+            if (Model != null)
+            {
                 Ray MouseRay = Camera.Active.MouseRay;
                 IndexPosition blockNormalOffsetIndex = IndexPosition.Zero;
                 IndexPosition MouseIndexPos = IndexPosition.Zero;
@@ -100,15 +111,18 @@ namespace AceOfSpades.Editor.Models
                 bool intersections = false;
                 Color voxelColor = new Color(236, 157, 196);
 
-                if (intersections = Model.RayIntersects(MouseRay, out MouseIndexPos, out ModelSide)) {
+                if (intersections = Model.RayIntersects(MouseRay, out MouseIndexPos, out ModelSide))
+                {
                     normal = Maths.CubeSideToSurfaceNormal(ModelSide);
                     blockNormalOffsetIndex = new IndexPosition(
                             MouseIndexPos.X + (int)normal.X,
                             MouseIndexPos.Y + (int)normal.Y,
                             MouseIndexPos.Z + (int)normal.Z);
                 }
-                if (Model.IsBlockCoordInRange(MouseIndexPos) && intersections) {
-                    if (Input.GetMouseButtonDown(MouseButton.Left)) {
+                if (Model.IsBlockCoordInRange(MouseIndexPos) && intersections)
+                {
+                    if (Input.GetMouseButtonDown(MouseButton.Left))
+                    {
                         Model.ChangeBlock(blockNormalOffsetIndex, new Block(1,
                             voxelColor.R, voxelColor.G, voxelColor.B));
                     }
@@ -117,12 +131,13 @@ namespace AceOfSpades.Editor.Models
 
         }
 
-        public void Draw() {
-
+        public void Draw()
+        {
             if (voxelGrid != null)
                 entReneder.Batch(voxelGrid, Vector3.Zero);
 
-            if (Model != null) {
+            if (Model != null)
+            {
                 entReneder.Batch(Model, Vector3.Zero);
             }
         }
