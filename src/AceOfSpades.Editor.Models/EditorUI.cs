@@ -3,7 +3,6 @@ using Dash.Engine;
 using Dash.Engine.Graphics;
 using Dash.Engine.Graphics.Gui;
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 /* EditorUI.cs
@@ -13,38 +12,78 @@ using System.IO;
 
 namespace AceOfSpades.Editor.Models
 {
-    public class EditorUI
+    class EditorUI
     {
+        public GUIColorPickerWindow ColorWindow { get; }
+        public GUITheme Theme { get; }
+        public GUISystem GUISystem { get; }
+
         GUIArea area;
         MasterRenderer renderer;
         EditorScreen screen;
-        GUITheme theme;
         GUILabel statusLeft, statusRight;
+        GUIDropDownButton[] editModeButtons;
+        GUILabel currentToolLabel;
         FileBrowserWindow openFileWindow;
         FileBrowserWindow saveFileWindow;
-
-        List<GUIWindow> windowElements = new List<GUIWindow>();
-
-        GUIFrame TopBar;
-        ToolBarHelper TopBarHelper;
-        bool setup;
+        MessageWindow popup;
 
         public EditorUI(MasterRenderer renderer, EditorScreen screen)
         {
             this.renderer = renderer;
             this.screen = screen;
 
-            GUISystem gsys = renderer.Sprites.GUISystem;
+            GUISystem = renderer.Sprites.GUISystem;
 
-            area = new GUIArea(gsys);
+            area = new GUIArea(GUISystem);
             renderer.Sprites.Add(area);
 
-            theme = EditorTheme.Glass;
+            Theme = EditorTheme.Glass;
 
+            GUIFrame topBar = new GUIFrame(UDim2.Zero, new UDim2(1, 0, 0, 40), Theme);
 
-            GenBar(renderer.ScreenWidth);
+            const float menuItemWidth = 220;
 
-            openFileWindow = new FileBrowserWindow(gsys, theme, new UDim2(0.75f, 0, 0.75f, 0), "Open Model",
+            GUIDropDown fileMenu = new GUIDropDown(UDim2.Zero, new UDim2(0, menuItemWidth, 1, 0), Theme, false) { Parent = topBar, Text = "File" };
+            fileMenu.AddItem("New", null, (d, b) => { screen.LoadNewModel(); });
+            fileMenu.AddItem("Open", null, (d, b) => { openFileWindow.Visible = true; });
+            fileMenu.AddItem("Save", null, (d, b) => { if (screen.CurrentFile != null) screen.SaveModel(); else saveFileWindow.Visible = true; });
+            fileMenu.AddItem("Save As...", null, (d, b) => { saveFileWindow.Visible = true; });
+
+            GUIDropDown editMenu = new GUIDropDown(new UDim2(0, menuItemWidth, 0, 0), new UDim2(0, menuItemWidth, 1, 0), Theme, false) { Parent = topBar, Text = "Edit" };
+
+            GUIDropDown editModeMenu = new GUIDropDown(UDim2.Zero, new UDim2(0, menuItemWidth, 1, 0), Theme, false) { HideMainButton = true };
+            editMenu.AddItemSub("Mode", editModeMenu);
+            editModeButtons = new GUIDropDownButton[] {
+                editModeMenu.AddItem("None", null, OnEditModeSelected),
+                editModeMenu.AddItem("Add", null, OnEditModeSelected),
+                editModeMenu.AddItem("Delete", null, OnEditModeSelected),
+                editModeMenu.AddItem("Paint", null, OnEditModeSelected),
+                editModeMenu.AddItem("Move", null, OnEditModeSelected),
+            };
+
+            editModeButtons[0].Toggled = true;
+
+            GUIDropDown gfxMenu = new GUIDropDown(new UDim2(0, menuItemWidth * 2, 0, 0), new UDim2(0, menuItemWidth, 1, 0), Theme, false)
+            { Parent = topBar, Text = "Graphics" };
+            gfxMenu.AddItem("FXAA", null, (d, b) => { TogglePostProcess(b, true); });
+
+            GUIDropDown viewMenu = new GUIDropDown(new UDim2(0, menuItemWidth * 3, 0, 0), new UDim2(0, menuItemWidth, 1, 0), Theme, false) { Parent = topBar, Text = "View" };
+            viewMenu.AddItem("Color Picker", null, (d, b) => { ColorWindow.Visible = true; });
+
+            currentToolLabel = new GUILabel(new UDim2(1f, -5, 0, 5), UDim2.Zero, "Current Tool: None", TextAlign.TopRight, Theme) { Parent = topBar };
+
+            SetupDefaultGraphicsSettings(gfxMenu);
+            area.AddTopLevel(topBar);
+
+            GUIFrame bottomBar = new GUIFrame(new UDim2(0, 0, 1, -30), new UDim2(1, 0, 0, 30), Theme);
+
+            statusLeft = new GUILabel(UDim2.Zero, new UDim2(0.5f, 0, 1, 0), "<left status>", TextAlign.Left, Theme) { Parent = bottomBar };
+            statusRight = new GUILabel(new UDim2(0.5f, 0, 0, 0), new UDim2(0.5f, 0, 1, 0), "<right status>", TextAlign.Right, Theme) { Parent = bottomBar };
+
+            area.AddTopLevel(bottomBar);
+
+            openFileWindow = new FileBrowserWindow(GUISystem, Theme, new UDim2(0.75f, 0, 0.75f, 0), "Open Model",
                 FileBrowserMode.OpenFile, new string[] { ".aosm" },
                 (window) =>
                 {
@@ -52,7 +91,7 @@ namespace AceOfSpades.Editor.Models
                         screen.LoadModel(window.FileName);
                 });
 
-            saveFileWindow = new FileBrowserWindow(gsys, theme, new UDim2(0.75f, 0, 0.75f, 0), "Save Model",
+            saveFileWindow = new FileBrowserWindow(GUISystem, Theme, new UDim2(0.75f, 0, 0.75f, 0), "Save Model",
                 FileBrowserMode.Save, new string[] { ".aosm" },
                 (window) =>
                 {
@@ -64,256 +103,28 @@ namespace AceOfSpades.Editor.Models
                     screen.SaveModel(fullPath);
                 });
 
-            gsys.Add(openFileWindow, saveFileWindow);
-        }
-
-
-        /// <summary>
-        /// Set a GFX option and reflect setting on button
-        /// </summary>
-        /// <param name="dropDown"></param>
-        /// <param name="button"></param>
-        void SetGfxOption(GUIDropDown dropDown, GUIDropDownButton button)
-        {
-            if (button.Value == null)
-                return; //it should never be null but just in case...
-
-            if (button.Value.GetType() == typeof(int))
-            {
-                var SubMenu = TopBarHelper.GetSubMenus();
-                foreach (KeyValuePair<string, GUIDropDownButton> btn in SubMenu["PCF Samples"])
-                {
-                    if (btn.Value.Toggled)
-                    {
-                        btn.Value.Toggled = false; //only toggle off if on
-                        break; //prevent more than whats needed
-                    }
-                }
-                renderer.GFXSettings.ShadowPCFSamples = (button.Value as int? != null ? (int)button.Value : 1); //we try to safe cast as int nullable; if we fail we hard set to 1
-                button.Toggled = true;
-            }
-
-            if (button.Value.GetType() == typeof(FogQuality))
-            {
-                FogQuality myType = (FogQuality)button.Value;
-
-
-                var SubMenu = TopBarHelper.GetSubMenus();
-                foreach (KeyValuePair<string, GUIDropDownButton> btn in SubMenu["Fog"])
-                {
-                    if (btn.Value.Toggled)
-                    {
-                        btn.Value.Toggled = false; //only toggle off if on
-                        break; //prevent more than whats needed
-                    }
-                }
-
-                switch (myType)
-                {
-                    case FogQuality.Off:
-                        {
-                            bool currentSetting = renderer.FogEnabled;
-                            renderer.FogEnabled = !currentSetting;
-                            button.Toggled = currentSetting; //dont need to invert the bool, all buttons are false by default due to the foreach loop
-                            break;
-                        }
-
-                    case FogQuality.Low:
-                        {
-                            renderer.FogEnabled = true;
-                            renderer.GFXSettings.FogQuality = FogQuality.Low;
-                            button.Toggled = true;
-                            break;
-                        }
-
-                    case FogQuality.Medium:
-                        {
-                            renderer.FogEnabled = true;
-                            renderer.GFXSettings.FogQuality = FogQuality.Medium;
-                            button.Toggled = true;
-                            break;
-                        }
-
-                    case FogQuality.High:
-                        {
-                            renderer.FogEnabled = true;
-                            renderer.GFXSettings.FogQuality = FogQuality.High;
-                            button.Toggled = true;
-                            break;
-                        }
-                }
-            }
-
-            if (button.Value.GetType() == typeof(gfxType))
-            { //check for enum gfxType
-                gfxType myType = (gfxType)button.Value; // /should/ be safe to case as gfxType
-                switch (myType)
-                {
-                    case gfxType.fxaa:
-                        {
-                            bool currentSetting = renderer.GFXSettings.ApplyFXAA; //easier to read
-                            renderer.GFXSettings.ApplyFXAA = !currentSetting;
-                            button.Toggled = !currentSetting;
-                            break;
-                        }
-
-                    case gfxType.shadows:
-                        {
-                            bool currentSetting = renderer.GFXSettings.RenderShadows; //easier to read
-                            renderer.GFXSettings.RenderShadows = !currentSetting;
-                            button.Toggled = !currentSetting;
-                            break;
-                        }
-
-                    case gfxType.wireframe:
-                        {
-                            bool currentSetting = renderer.GlobalWireframe; //easier to read
-                            renderer.GlobalWireframe = !currentSetting;
-                            button.Toggled = !currentSetting;
-                            break;
-                        }
-                }
-            }
-        }
-
-        enum gfxType
-        {
-            fxaa,
-            shadows,
-            wireframe
-        }
-
-        /// <summary>
-        /// Regenerate topBar for stuff and stuff
-        /// </summary>
-        /// <param name="rendWidth"></param>
-        /// <param name="force">Force Regen?</param>
-        public void GenBar(float rendWidth, bool force = false)
-        {
-            if (setup || force) //prevent recreating toolbars unless forced
-                return;
-
-            #region File Menu Buttons
-            GUIDropDownButtonConfig[] FileMenuButtons = new GUIDropDownButtonConfig[4];
-            FileMenuButtons[0] = new GUIDropDownButtonConfig() { text = "New", value = null, callback = (d, b) => { screen.LoadNewModel(); } };
-            FileMenuButtons[1] = new GUIDropDownButtonConfig() { text = "Open", value = null, callback = (d, b) => { openFileWindow.Visible = true; } };
-            FileMenuButtons[2] = new GUIDropDownButtonConfig() { text = "Save", value = null, callback = (d, b) => { if (screen.CurrentFile != null) screen.SaveModel(); else saveFileWindow.Visible = true; } };
-            FileMenuButtons[3] = new GUIDropDownButtonConfig() { text = "Save As...", value = null, callback = (d, b) => { saveFileWindow.Visible = true; } };
-            #endregion
-
-            #region Gfx Menu Buttons
-            GUIDropDownButtonConfig[] GfxMenuButtons = new GUIDropDownButtonConfig[3];
-            GfxMenuButtons[0] = new GUIDropDownButtonConfig() { text = "FXAA", value = gfxType.fxaa, callback = SetGfxOption };
-            GfxMenuButtons[1] = new GUIDropDownButtonConfig() { text = "Shadows", value = gfxType.shadows, callback = SetGfxOption };
-            GfxMenuButtons[2] = new GUIDropDownButtonConfig() { text = "Wireframe", value = gfxType.wireframe, callback = SetGfxOption };
-
-            GUIDropDownButtonConfig[] fogButtons = new GUIDropDownButtonConfig[4];
-            fogButtons[0] = new GUIDropDownButtonConfig() { text = "Off", value = FogQuality.Off, callback = SetGfxOption };
-            fogButtons[1] = new GUIDropDownButtonConfig() { text = "Low", value = FogQuality.Low, callback = SetGfxOption };
-            fogButtons[2] = new GUIDropDownButtonConfig() { text = "Medium", value = FogQuality.Medium, callback = SetGfxOption };
-            fogButtons[3] = new GUIDropDownButtonConfig() { text = "High", value = FogQuality.High, callback = SetGfxOption };
-
-            GUIDropDownButtonConfig[] pcfButtons = new GUIDropDownButtonConfig[5];
-            pcfButtons[0] = new GUIDropDownButtonConfig() { text = "1", value = 1, callback = SetGfxOption };
-            pcfButtons[1] = new GUIDropDownButtonConfig() { text = "2", value = 2, callback = SetGfxOption };
-            pcfButtons[2] = new GUIDropDownButtonConfig() { text = "4", value = 4, callback = SetGfxOption };
-            pcfButtons[3] = new GUIDropDownButtonConfig() { text = "6", value = 6, callback = SetGfxOption };
-            pcfButtons[4] = new GUIDropDownButtonConfig() { text = "12", value = 12, callback = SetGfxOption };
-            #endregion
-
-            #region Editor Menu Buttons
-            GUIDropDownButtonConfig[] EditorButtons = new GUIDropDownButtonConfig[5];
-            EditorButtons[0] = new GUIDropDownButtonConfig() { text = "Color Picker", value = typeof(GUIColorPickerWindow), callback = showWindowElement };
-            EditorButtons[1] = new GUIDropDownButtonConfig() { text = "Eyedropper", value = null, callback = null };
-            EditorButtons[2] = new GUIDropDownButtonConfig() { text = "Paint", value = null, callback = null };
-            EditorButtons[3] = new GUIDropDownButtonConfig() { text = "Create Block", value = null, callback = null };
-            EditorButtons[4] = new GUIDropDownButtonConfig() { text = "Delete Block", value = null, callback = null };
-            #endregion
-
-            #region Debug Menu Buttons
-            GUIDropDownButtonConfig[] DebugMenuButtons = new GUIDropDownButtonConfig[2];
-            DebugMenuButtons[0] = new GUIDropDownButtonConfig() { text = "Regen ToolBar", value = null, callback = (d, b) => { GenBar(renderer.ScreenWidth, true); } };
-            DebugMenuButtons[1] = new GUIDropDownButtonConfig() { text = "show colour menu", value = typeof(GUIColorPickerWindow), callback = showWindowElement };
-            #endregion
-
-            GUIFrame bottomBar = new GUIFrame(new UDim2(0, 0, 1, -30), new UDim2(1, 0, 0, 30), theme);
-
-            statusLeft = new GUILabel(UDim2.Zero, new UDim2(0.5f, 0, 1, 0), "<left status>", TextAlign.Left, theme) { Parent = bottomBar };
-            statusRight = new GUILabel(new UDim2(0.5f, 0, 0, 0), new UDim2(0.5f, 0, 1, 0), "<right status>", TextAlign.Right, theme) { Parent = bottomBar };
-
-            GUIFrame rightHandBar = new GUIFrame(new UDim2(.5f, -45, 0, 0), new UDim2(1, 0, 1, 0), theme);
-            rightHandBar.MinSize = new UDim2(0, 90, .75f, 90);
-            rightHandBar.MaxSize = rightHandBar.MinSize;
-
-            GUIButton toAddRBar = new GUIButton(UDim2.Zero, new UDim2(1, 0, 1, 0), "Test", theme) { Parent = rightHandBar };
-
-            ToolBarCreator genTop = new ToolBarCreator(theme);
-
-            genTop.SetButtonWidth(4);
-
-            genTop.Add("File", FileMenuButtons);
-            genTop.Add("GFX", GfxMenuButtons,
-                new SubDropdownConfig() { Title = "Fog", subButtons = fogButtons },
-                new SubDropdownConfig() { Title = "PCF Samples", subButtons = pcfButtons }
-            ); //<!-- gfx settings -->
-            genTop.Add("Tools", EditorButtons);
-            genTop.Add("Debug", DebugMenuButtons);
-
-            this.TopBar = genTop.GetToolBar();
-
-            TopBarHelper = new ToolBarHelper(this.TopBar);
-
-            GUIColorPickerWindow ColorWindow = new GUIColorPickerWindow(renderer.Sprites.GUISystem, new UDim2(0.3f, 0, 0.3f, 0), theme);
+            ColorWindow = new GUIColorPickerWindow(GUISystem, new UDim2(0.3f, 0, 0.3f, 0), Theme);
+            ColorWindow.Visible = true;
+            ColorWindow.Position = new UDim2(0.7f, -10, 0.7f, -10);
             ColorWindow.MinSize = new UDim2(0, 400, 0, 300);
             ColorWindow.MaxSize = new UDim2(0, 550, 0, 400);
 
+            popup = new MessageWindow(GUISystem, Theme, new UDim2(0.6f, 0, 0.3f, 0), "Alert!");
+            popup.MinSize = new UDim2(0, 215, 0, 200);
+            popup.MaxSize = new UDim2(0, 600, 0, 275);
 
-            SetupDefaultGraphicsSettings();
-
-            windowElements.Add(ColorWindow);
-
-            renderer.Sprites.GUISystem.Add(ColorWindow);
-            area.AddTopLevel(TopBar, bottomBar, rightHandBar);
-
+            GUISystem.Add(ColorWindow, openFileWindow, saveFileWindow, popup);
         }
 
-        /// <summary>
-        /// Show/Hide a window element
-        /// </summary>
-        /// <param name="dropDown"></param>
-        /// <param name="button"></param>
-        void showWindowElement(GUIDropDown dropDown, GUIDropDownButton button)
+        public void ShowPopup(string title, string message)
         {
-            Type lookingFor = button.Value as Type;
-            for (int i = 0; i < windowElements.Count; i++)
-            {
-                var item = windowElements[i];
-                if (item != null && item.GetType() == lookingFor)
-                {
-                    item.Visible = !item.Visible;
-                }
-            }
+            popup.Title = title;
+            popup.Show(message);
         }
 
-        /// <summary>
-        /// Setup graphics settings buttons on dropdown to reflect the default
-        /// </summary>
-        void SetupDefaultGraphicsSettings()
+        public void HidePopup()
         {
-            setup = true;
-
-            renderer.GFXSettings.ApplyFXAA = true;
-            renderer.GFXSettings.RenderShadows = true;
-            renderer.GFXSettings.FogQuality = FogQuality.Off;
-            renderer.GFXSettings.ShadowPCFSamples = 1;
-
-            var LevelOne = TopBarHelper.GetLevelOne();
-            var SubMenu = TopBarHelper.GetSubMenus();
-
-            LevelOne["GFX"]["FXAA"].Toggled = true;
-            LevelOne["GFX"]["Shadows"].Toggled = true;
-            SubMenu["Fog"]["Low"].Toggled = true;
-            SubMenu["PCF Samples"]["1"].Toggled = true;
+            popup.Hide();
         }
 
         public void Update(float deltaTime)
@@ -325,6 +136,33 @@ namespace AceOfSpades.Editor.Models
                 statusLeft.Text = "";
 
             statusRight.Text = string.Format("{0}fps", (int)Math.Ceiling(screen.Window.FPS));
+        }
+
+        void SetupDefaultGraphicsSettings(GUIDropDown menu)
+        {
+            menu.Items[0].Toggled = renderer.GFXSettings.ApplyFXAA;
+        }
+
+        void TogglePostProcess(GUIDropDownButton btn, bool fxaa)
+        {
+            if (fxaa) btn.Toggled = renderer.GFXSettings.ApplyFXAA = !renderer.GFXSettings.ApplyFXAA;
+            fxaa = renderer.GFXSettings.ApplyFXAA;
+        }
+
+        public void SetToolType(EditorToolType mode)
+        {
+            for (int i = 0; i < editModeButtons.Length; i++)
+                editModeButtons[i].Toggled = false;
+
+            editModeButtons[(int)mode].Toggled = true;
+            currentToolLabel.Text = string.Format("Current Tool: {0}", mode);
+        }
+
+        void OnEditModeSelected(GUIDropDown dropDown, GUIDropDownButton btn)
+        {
+            EditorToolType mode = (EditorToolType)btn.Index;
+            SetToolType(mode);
+            SetToolType(mode);
         }
     }
 }

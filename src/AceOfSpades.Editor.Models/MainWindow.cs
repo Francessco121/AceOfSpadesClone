@@ -21,6 +21,9 @@ namespace AceOfSpades.Editor.Models
         {
             SetVSync(true);
 
+            Renderer.GFXSettings.RenderShadows = false;
+            Renderer.GFXSettings.FogQuality = FogQuality.Off;
+
             Renderer.AddRenderer(new EntityRenderer(Renderer));
             Renderer.AddRenderer(new DebugRenderer(Renderer));
             Renderer.AddRenderer(new ChunkRenderer(Renderer));
@@ -30,6 +33,10 @@ namespace AceOfSpades.Editor.Models
 
             Camera.Active.SetMode(CameraMode.ArcBall);
             Camera.Active.SmoothCamera = true;
+            Camera.Active.Speeds[0] = 0.1f;
+            Camera.Active.Speeds[1] = 0.25f;
+            Camera.Active.ArcBallScrollSpeed = 0.75f;
+            Camera.Active.ArcBallMinimumRadius = 1f;
 
             screen = new EditorScreen(this, Renderer);
         }
@@ -48,7 +55,7 @@ namespace AceOfSpades.Editor.Models
 
         public void UpdateTitle(string fileName)
         {
-            Title = string.Format("Ace of Spades Model Editor - {0}", fileName != null ? fileName : "<untitled>");
+            Title = $"Ace of Spades Model Editor - {fileName ?? "<untitled>"}";
         }
     }
 }

@@ -168,8 +168,6 @@
     <Compile Include="Graphics\Gui\SpriteBatch.cs" />
     <Compile Include="Graphics\Gui\SpriteVertexBuffer.cs" />
     <Compile Include="Graphics\Gui\TextAlign.cs" />
-    <Compile Include="Graphics\Gui\ToolBarCreator.cs" />
-    <Compile Include="Graphics\Gui\ToolBarHelper.cs" />
     <Compile Include="Graphics\IGraphicsObject.cs" />
     <Compile Include="Graphics\IO\OBJLoader.cs" />
     <Compile Include="Graphics\Lighting\Light.cs" />

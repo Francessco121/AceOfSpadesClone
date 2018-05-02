@@ -15,17 +15,17 @@ namespace AceOfSpades.Editor
         public int TriangleCount { get; private set; }
         public int BlockCount { get; set; }
 
-        public Vector3 CenterPosition 
+        public Vector3 CenterPosition
         {
-            get 
+            get
             {
                 CalculateMinMax();
                 return new Vector3(
                     min.X + ((max.X - min.X) / 2f),
                     min.Y + ((max.Y - min.Y) / 2f),
                     min.Z + ((max.Z - min.Z) / 2f)
-                    ) * cube3DSize; 
-            } 
+                    ) * cube3DSize;
+            }
         }
         public IndexPosition Max { get { return max; } }
         public IndexPosition Min { get { return min; } }
@@ -88,7 +88,7 @@ namespace AceOfSpades.Editor
         {
             CalculateMinMax();
             IndexPosition newDim = Max - Min + new IndexPosition(1, 1, 1);
-            Block[, ,] newData = new Block[newDim.Z, newDim.Y, newDim.X];
+            Block[,,] newData = new Block[newDim.Z, newDim.Y, newDim.X];
 
             for (int x = 0; x <= Max.X; x++)
                 for (int y = 0; y <= Max.Y; y++)
@@ -115,7 +115,7 @@ namespace AceOfSpades.Editor
             {
                 int maxDim = Math.Max(Math.Max(Width, Height), Depth);
 
-                Block[, ,] newData = new Block[maxDim, maxDim, maxDim];
+                Block[,,] newData = new Block[maxDim, maxDim, maxDim];
 
                 for (int x = 0; x < Width; x++)
                     for (int y = 0; y < Height; y++)
@@ -142,7 +142,7 @@ namespace AceOfSpades.Editor
             {
                 int maxDim = Math.Max(Math.Max(Width, Height), Depth);
 
-                Block[, ,] newData = new Block[maxDim, maxDim, maxDim];
+                Block[,,] newData = new Block[maxDim, maxDim, maxDim];
 
                 for (int x = 0; x < Width; x++)
                     for (int y = 0; y < Height; y++)
@@ -169,7 +169,7 @@ namespace AceOfSpades.Editor
             {
                 int maxDim = Math.Max(Math.Max(Width, Height), Depth);
 
-                Block[, ,] newData = new Block[maxDim, maxDim, maxDim];
+                Block[,,] newData = new Block[maxDim, maxDim, maxDim];
 
                 for (int x = 0; x < Width; x++)
                     for (int y = 0; y < Height; y++)
@@ -192,7 +192,7 @@ namespace AceOfSpades.Editor
 
         public void FlipX()
         {
-            Block[, ,] newData = new Block[Depth, Height, Width];
+            Block[,,] newData = new Block[Depth, Height, Width];
 
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
@@ -210,7 +210,7 @@ namespace AceOfSpades.Editor
 
         public void FlipY()
         {
-            Block[, ,] newData = new Block[Depth, Height, Width];
+            Block[,,] newData = new Block[Depth, Height, Width];
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
                     for (int z = 0; z < Depth; z++)
@@ -227,7 +227,7 @@ namespace AceOfSpades.Editor
 
         public void FlipZ()
         {
-            Block[, ,] newData = new Block[Depth, Height, Width];
+            Block[,,] newData = new Block[Depth, Height, Width];
 
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
@@ -264,7 +264,7 @@ namespace AceOfSpades.Editor
             offMin = Min + delta;
             offMax = Max + delta;
 
-            Block[, ,] newData = new Block[Depth, Height, Width];
+            Block[,,] newData = new Block[Depth, Height, Width];
 
             for (int x = 0; x <= Max.X; x++)
                 for (int y = 0; y <= Max.Y; y++)
@@ -317,7 +317,7 @@ namespace AceOfSpades.Editor
 
         public void ChangeDimensions(int width, int height, int depth)
         {
-            Block[, ,] oldBlocks = Blocks;
+            Block[,,] oldBlocks = Blocks;
 
             InitBlocks(width, height, depth);
 
@@ -372,88 +372,11 @@ namespace AceOfSpades.Editor
                 Maths.NegativeRound(worldCoords.Z / cubeSize));
         }
 
-        public bool RayIntersects(Ray ray, out IndexPosition blockIntersection, out CubeSide side) {
-            blockIntersection = IndexPosition.Zero;
-            side = CubeSide.Left;
-
-            float cubeSize = this.CubeSize;
-
-            IndexPosition? lastBlockIndex = null;
-            Vector3 cube3DSize = new Vector3(cubeSize);
-            Vector3 half3DCubeSize = cube3DSize / 2f;
-
-            for (int i = 0; i < 1000; i++) {
-                // Calculate the world position to check
-                Vector3 tryWorldPos = ray.Origin + (ray.Direction * i) + half3DCubeSize;
-                // Calculate the block coordinate to try
-                IndexPosition blockPos = new IndexPosition(
-                    Maths.NegativeRound(tryWorldPos.X / cubeSize),
-                    Maths.NegativeRound(tryWorldPos.Y / cubeSize),
-                    Maths.NegativeRound(tryWorldPos.Z / cubeSize));
-
-                if (blockPos.X < -2 || blockPos.Y < -2 || blockPos.Z < -2
-                    || blockPos.X >= Width + 2 || blockPos.Y >= Height + 2 || blockPos.Z >= Depth + 2)
-                    continue;
-
-                // If this is the first block checked for this chunk, or the index changed, continue
-                if (!lastBlockIndex.HasValue || blockPos != lastBlockIndex) {
-                    bool blockFound = false;
-                    float closestDist = float.MaxValue;
-
-                    // For a 1 block radius around the block found, see if any
-                    // surrounding blocks are intersecting the ray, and are closer
-                    // to the ray origin. This prevents the mild error in getting the first
-                    // intersecting block, since we are just using block coordinates.
-                    for (int x = -1; x <= 1; x++)
-                        for (int y = -1; y <= 1; y++)
-                            for (int z = -1; z <= 1; z++) {
-                                IndexPosition shiftedBlockPos = new IndexPosition(blockPos.X + x, blockPos.Y + y, blockPos.Z + z);
-                                if (!IsBlockCoordInRange(shiftedBlockPos))
-                                    continue;
-
-                                Block type = Blocks[shiftedBlockPos.Z, shiftedBlockPos.Y, shiftedBlockPos.X];
-                                if (type != Block.AIR) {
-                                    // Calculate the new blocks positions
-                                    IndexPosition newIndexPos = blockPos + new IndexPosition(x, y, z);
-                                    Vector3 cubeWorldPos = (newIndexPos * cube3DSize) - half3DCubeSize;
-
-                                    // If this blocks distance is smaller than the current, continue
-                                    float dist = Maths.DistanceSquared(cubeWorldPos, ray.Origin);
-                                    if (dist < closestDist) {
-                                        AxisAlignedBoundingBox aabb = 
-                                            new AxisAlignedBoundingBox(cubeWorldPos, cubeWorldPos + cube3DSize);
-
-                                        // If this block intersects the ray,
-                                        // it is the newly intersected block.
-                                        float? interDist;
-                                        CubeSide interSide;
-                                        if (ray.Intersects(aabb, out interDist, out interSide)) {
-                                            closestDist = dist;
-                                            side = interSide;
-                                            blockIntersection = newIndexPos;
-                                            blockFound = true;
-                                        }
-                                    }
-                                }
-                            }
-
-                    // If any block was found to actually intersect the ray,
-                    // return.
-                    if (blockFound)
-                        return true;
-                }
-
-                lastBlockIndex = blockPos;
-            }
-
-            // No intersection at this point
-            return false;
-        }
-
-        public bool RayIntersects(Ray ray, float cubeSize, out IndexPosition blockIntersection, out CubeSide side)
+        public VoxelObjectRaycastResult Raycast(Ray ray, float cubeSize = Block.CUBE_SIZE)
         {
-            blockIntersection = IndexPosition.Zero;
-            side = CubeSide.Left;
+            IndexPosition? blockIntersection = null;
+            CubeSide? side = null;
+            float? intersectionDistance = null;
 
             IndexPosition? lastBlockIndex = null;
             Vector3 cube3DSize = new Vector3(cubeSize);
@@ -495,8 +418,7 @@ namespace AceOfSpades.Editor
                                 if (type != Block.AIR)
                                 {
                                     // Calculate the new blocks positions
-                                    IndexPosition newIndexPos = blockPos + new IndexPosition(x, y, z);
-                                    Vector3 cubeWorldPos = (newIndexPos * cube3DSize) - half3DCubeSize;
+                                    Vector3 cubeWorldPos = (shiftedBlockPos * cube3DSize) - half3DCubeSize;
 
                                     // If this blocks distance is smaller than the current, continue
                                     float dist = Maths.DistanceSquared(cubeWorldPos, ray.Origin);
@@ -512,8 +434,9 @@ namespace AceOfSpades.Editor
                                         if (ray.Intersects(aabb, out interDist, out interSide))
                                         {
                                             closestDist = dist;
+                                            intersectionDistance = dist;
                                             side = interSide;
-                                            blockIntersection = newIndexPos;
+                                            blockIntersection = shiftedBlockPos;
                                             blockFound = true;
                                         }
                                     }
@@ -523,14 +446,17 @@ namespace AceOfSpades.Editor
                     // If any block was found to actually intersect the ray,
                     // return.
                     if (blockFound)
-                        return true;
+                    {
+                        return new VoxelObjectRaycastResult(ray, true, ray.Origin + ray.Direction * intersectionDistance.Value, 
+                            intersectionDistance, blockIntersection, side);
+                    }
                 }
 
                 lastBlockIndex = blockPos;
             }
 
             // No intersection at this point
-            return false;
+            return new VoxelObjectRaycastResult(ray);
         }
 
         public override void CreateOrUpdateMesh(BufferUsageHint bufferUsage)

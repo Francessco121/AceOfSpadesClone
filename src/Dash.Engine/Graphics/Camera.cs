@@ -55,6 +55,9 @@ namespace Dash.Engine.Graphics
         public float DefaultArcBallMouseSensitivity = 0.2f;
         public float ArcBallMouseSensitivity = 0.2f;
 
+        public float ArcBallScrollSpeed = 4f;
+        public float ArcBallMinimumRadius = 5f;
+
         public float[] Speeds = new float[2];
 
         public Matrix4 YViewMatrix { get; private set; }
@@ -259,8 +262,8 @@ namespace Dash.Engine.Graphics
 
             if (Mode == CameraMode.ArcBall)
             {
-                targetRadius -= Input.ScrollDeltaY * 4f;
-                if (targetRadius < 5) targetRadius = 5;
+                targetRadius -= Input.ScrollDeltaY * ArcBallScrollSpeed;
+                if (targetRadius < ArcBallMinimumRadius) targetRadius = ArcBallMinimumRadius;
             }
 
             // Handle camera lerp
