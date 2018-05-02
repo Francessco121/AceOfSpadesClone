@@ -12,7 +12,7 @@ namespace AceOfSpades.Editor.World.Tools
     public class RemoveTool : TerrainEditorTool
     {
         public RemoveTool(EditorScreen screen, WorldEditor editor) 
-            : base(screen, editor, EditorToolType.Remove, Key.Number3)
+            : base(screen, editor, EditorToolType.Delete, Key.Number3)
         { }
 
         public override void Update(EditorWorldRaycastResult intersection, float deltaTime)
