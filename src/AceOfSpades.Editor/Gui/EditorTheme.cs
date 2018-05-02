@@ -5,10 +5,14 @@ using Dash.Engine.Graphics.Gui;
  * Tristan Smith
 */
 
-namespace AceOfSpades.Editor.Gui {
-    public class EditorTheme : GUITheme {
-        public static GUITheme Glass {
-            get {
+namespace AceOfSpades.Editor.Gui
+{
+    public class EditorTheme : GUITheme
+    {
+        public static GUITheme Glass
+        {
+            get
+            {
                 GUITheme t = new GUITheme();
 
                 t.SetField("Button.NormalImage", Image.CreateBlank(Color.fromHtml("#1E1E1E", .2f)));

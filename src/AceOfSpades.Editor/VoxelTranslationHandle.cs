@@ -5,14 +5,18 @@ using Dash.Engine.Graphics;
  * Ethan Lafrenais
 */
 
-namespace AceOfSpades.Editor {
-    public sealed class VoxelTranslationHandle : VoxelEditorObject {
+namespace AceOfSpades.Editor
+{
+    public sealed class VoxelTranslationHandle : VoxelEditorObject
+    {
         public VoxelTranslationHandle(int height, float cubeSize, Color color)
-            : base(3, height, 3, cubeSize, true) {
+            : base(3, height, 3, cubeSize, true)
+        {
 
             for (int x = 0; x < Width; x++)
                 for (int y = 0; y < Height; y++)
-                    for (int z = 0; z < Depth; z++) {
+                    for (int z = 0; z < Depth; z++)
+                    {
                         bool inMiddle = x == 1 && z == 1;
                         bool oneFromTop = y == Height - 2;
                         bool diag = x != 1 && z != 1;
