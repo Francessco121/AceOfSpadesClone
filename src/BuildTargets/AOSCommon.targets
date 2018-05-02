@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+<PropertyGroup>
+	<InContentDirectory>$(SolutionDir)Content</InContentDirectory>
+    <ErrorHandlerName>ErrorHandler.exe</ErrorHandlerName>
+	<InErrorHandler>$(SolutionDir)$(ErrorHandlerName)</InErrorHandler>
+</PropertyGroup>
+<PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' OR '$(Platform)' == 'x86' ">
+    <!-- Assume MSIL is set to prefer 32-bit -->
+    <InNatives>$(SolutionDir)Natives\32</InNatives>
+</PropertyGroup>
+<PropertyGroup Condition=" '$(Platform)' == 'x64' ">
+	<InNatives>$(SolutionDir)Natives\64</InNatives>
+</PropertyGroup>
+<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+	<OutDirectory>clean</OutDirectory>
+	<OutLibDirectory>clean\Lib</OutLibDirectory>
+	<OutContentDirectory>clean\Content</OutContentDirectory>
+</PropertyGroup>
+<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+	<OutDirectory></OutDirectory>
+	<OutLibDirectory></OutLibDirectory>
+	<OutContentDirectory>Content</OutContentDirectory>
+</PropertyGroup>
+
+<!-- Organizes file structure, copies content, copies error handler, and excludes vshost, xml docs, and pdb's -->
+<Target Name="AfterBuildOrganize">
+	<Message Text="Running 'AfterBuildOrganize'" Importance="high" />
+    
+    <PropertyGroup>
+	  <CopiedContentFiles></CopiedContentFiles>
+	  <CopiedNativeFiles></CopiedNativeFiles>
+	  <CopiedErr></CopiedErr>
+	</PropertyGroup>
+	<ItemGroup Condition=" '$(Configuration)' == 'Release' ">
+	  <MoveToLibFolder Include="$(OutputPath)*.dll" />
+	  <MoveToCleanFolder Include="$(OutputPath)*.exe ; $(OutputPath)*.cfg ; $(OutputPath)*.config" Exclude="$(OutputPath)*.vshost*" />
+      <DllConfigFiles Include="$(OutputPath)*.dll.config" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ContentFiles Include="$(InContentDirectory)\**\*.*" />
+	  <ErrorHandlerFile Include="$(InErrorHandler)" />
+	  <NativesFiles Include="$(InNatives)\**\*.*" Exclude=".gitkeep" />
+	</ItemGroup>
+    
+    <!-- Copy glfw, lua, and openal native binaries to lib folder -->
+    <Copy SourceFiles="@(NativesFiles)" DestinationFiles="@(NativesFiles->'$(OutputPath)\$(OutLibDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" OverwriteReadOnlyFiles="true" 
+		Condition="!Exists('$(OutputPath)\$(OutLibDirectory)\%(RecursiveDir)%(Filename)%(Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(OutputPath)\$(OutLibDirectory)\%(RecursiveDir)%(Filename)%(Extension)').Ticks)">
+		<Output TaskParameter="CopiedFiles" PropertyName="CopiedNativeFiles" />
+	</Copy>
+    
+    <!-- Copy dll.config files to lib folder -->
+    <!--<Copy SourceFiles="@(DllConfigFiles)" DestinationFiles="@(DllConfigFiles->'$(OutputPath)\$(OutLibDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" OverwriteReadOnlyFiles="true" 
+		Condition="'$(Configuration)' == 'Release' AND (!Exists('$(OutputPath)\$(OutLibDirectory)\%(RecursiveDir)%(Filename)%(Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(OutputPath)\$(OutLibDirectory)\%(RecursiveDir)%(Filename)%(Extension)').Ticks))" />-->
+	
+    <!-- If on release, move dll's and exe to clean folder -->
+    <Move SourceFiles="@(MoveToLibFolder)" DestinationFolder="$(OutputPath)\$(OutLibDirectory)" OverwriteReadOnlyFiles="true" Condition=" '$(Configuration)' == 'Release' " />
+	<Move SourceFiles="@(MoveToCleanFolder)" DestinationFolder="$(OutputPath)\$(OutDirectory)" OverwriteReadOnlyFiles="true" Condition=" '$(Configuration)' == 'Release' " />
+	<!-- Copy content files -->
+    <Copy SourceFiles="@(ContentFiles)" DestinationFiles="@(ContentFiles->'$(OutputPath)\$(OutContentDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" OverwriteReadOnlyFiles="true" 
+		Condition="!Exists('$(OutputPath)\$(OutContentDirectory)\%(RecursiveDir)%(Filename)%(Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(OutputPath)\$(OutContentDirectory)\%(RecursiveDir)%(Filename)%(Extension)').Ticks)">
+		<Output TaskParameter="CopiedFiles" PropertyName="CopiedContentFiles" />
+	</Copy>
+	
+    <!-- Copy error handler -->
+	<Copy SourceFiles="@(ErrorHandlerFile)" DestinationFolder="$(OutputPath)\$(OutDirectory)"
+		Condition="!Exists('$(OutputPath)\$(OutDirectory)\%(Filename)%(Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) > $([System.IO.File]::GetLastWriteTime('$(OutputPath)\$(OutDirectory)\%(Filename)%(Extension)').Ticks)">
+		<Output TaskParameter="CopiedFiles" PropertyName="CopiedErr" />
+	</Copy>
+
+	<Message Text="Copied/Checked $(CopiedContentFiles.Length) Content Files." Importance="high" Condition=" '$(CopiedContentFiles.Length)' > '0'" />
+	<Message Text="Copied/Checked $(CopiedNativeFiles.Length) Native Binary Files." Importance="high" Condition=" '$(CopiedNativeFiles.Length)' > '0'" />
+	<Message Text="Copied ErrorHandler.exe." Importance="high" Condition=" '$(CopiedErr.Length)' > '0'" />
+</Target>
+
+<Target Name="AfterClean">
+    <!-- Remove content and clean folder, as well as ErrorHandler.exe -->
+	<RemoveDir Directories="$(OutputPath)\$(OutContentDirectory) ; $(OutputPath)\$(OutDirectory)\clean" />
+	<Delete Files="$(OutputPath)\$(OutDirectory)\$(ErrorHandlerName)" />
+</Target>
+
+</Project>

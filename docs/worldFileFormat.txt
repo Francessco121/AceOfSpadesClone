@@ -1,0 +1,17 @@
+version
+terrainWidth
+terrainHeight
+terrainDepth
+chunks...
+
+[chunk]
+isEmpty
+if (!isEmpty)
+	isAir
+	if (isAir)
+		amountToSkip
+	else
+		r
+		g
+		b
+		data

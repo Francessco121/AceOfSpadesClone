@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+<PropertyGroup>
+	<InContentDirectory>$(SolutionDir)Content.ErrorHandler</InContentDirectory>
+</PropertyGroup>
+<PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+	<OutDirectory>clean</OutDirectory>
+	<OutContentDirectory>clean\Content</OutContentDirectory>
+</PropertyGroup>
+<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+	<OutDirectory></OutDirectory>
+	<OutContentDirectory>Content</OutContentDirectory>
+</PropertyGroup>
+
+<!-- Organizes file structure, copies content, copies error handler, and excludes vshost, xml docs, and pdb's -->
+<Target Name="AfterBuildOrganize">
+	<Message Text="Running 'AfterBuildOrganize'" Importance="high" />
+	
+	<PropertyGroup>
+	  <CopiedContentFiles></CopiedContentFiles>
+	</PropertyGroup>
+	<ItemGroup Condition=" '$(Configuration)' == 'Release' ">
+	  <MoveToCleanFolder Include="$(OutputPath)*.exe ; $(OutputPath)*.cfg ; $(OutputPath)*.config" Exclude="$(OutputPath)*.vshost*" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ContentFiles Include="$(InContentDirectory)\**\*.*" />
+	</ItemGroup>
+	
+	<!-- If on release, move dll's and exe to clean folder -->
+	<Move SourceFiles="@(MoveToCleanFolder)" DestinationFolder="$(OutputPath)\$(OutDirectory)" OverwriteReadOnlyFiles="true" Condition=" '$(Configuration)' == 'Release' " />
+	<!-- Copy content files -->
+	<Copy SourceFiles="@(ContentFiles)" DestinationFiles="@(ContentFiles->'$(OutputPath)\$(OutContentDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" OverwriteReadOnlyFiles="true" 
+		Condition="!Exists('$(OutputPath)\$(OutContentDirectory)\%(RecursiveDir)%(Filename)%(Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(OutputPath)\$(OutContentDirectory)\%(RecursiveDir)%(Filename)%(Extension)').Ticks)">
+		<Output TaskParameter="CopiedFiles" PropertyName="CopiedContentFiles" />
+	</Copy>
+
+	<!-- <Message Text="Copied/Checked $(CopiedFiles.Length) Content Files." Importance="high" Condition=" '$(CopiedContentFiles.Length)' > '0'" /> -->
+</Target>
+
+<Target Name="AfterClean">
+	<!-- Remove content and clean folder -->
+	<RemoveDir Directories="$(OutputPath)\$(OutContentDirectory) ; $(OutputPath)\$(OutDirectory)\clean" />
+</Target>
+
+</Project>

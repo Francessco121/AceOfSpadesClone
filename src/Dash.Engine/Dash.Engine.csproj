@@ -1,0 +1,286 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B8A7FE96-939B-4F3B-A8F8-ACB914960AA8}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dash.Engine</RootNamespace>
+    <AssemblyName>Dash.Engine</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="NVorbis, Version=0.8.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NVorbis.0.8.5.0\lib\NVorbis.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Animation\DegreeAnim.cs" />
+    <Compile Include="Animation\FloatAnim.cs" />
+    <Compile Include="Animation\RadianAnim.cs" />
+    <Compile Include="Animation\ValueAnim.cs" />
+    <Compile Include="Animation\Vector3Anim.cs" />
+    <Compile Include="Audio\Alc\Alc.cs" />
+    <Compile Include="Audio\Alc\AlcEnums.cs" />
+    <Compile Include="Audio\ALUtils.cs" />
+    <Compile Include="Audio\AL\AL.cs" />
+    <Compile Include="Audio\AL\ALEnums.cs" />
+    <Compile Include="Audio\AL\EffectsExtension.cs" />
+    <Compile Include="Audio\AL\EffectsExtensionEnums.cs" />
+    <Compile Include="Audio\AL\EffectsExtensionPresets.cs" />
+    <Compile Include="Audio\AL\XRamExtension.cs" />
+    <Compile Include="Audio\AudioContext.cs" />
+    <Compile Include="Audio\AudioContextException.cs" />
+    <Compile Include="Audio\AudioDeviceEnumerator.cs" />
+    <Compile Include="Audio\AudioDeviceErrorChecker.cs" />
+    <Compile Include="Audio\AudioDeviceException.cs" />
+    <Compile Include="Audio\AudioException.cs" />
+    <Compile Include="Audio\AudioListener.cs" />
+    <Compile Include="Audio\AudioValueException.cs" />
+    <Compile Include="Audio\OggFile.cs" />
+    <Compile Include="Audio\AudioSource.cs" />
+    <Compile Include="Audio\AudioBuffer.cs" />
+    <Compile Include="Audio\WavFile.cs" />
+    <Compile Include="Axis.cs" />
+    <Compile Include="Batch.cs" />
+    <Compile Include="BiDictionary.cs" />
+    <Compile Include="BoundingBox.cs" />
+    <Compile Include="Component.cs" />
+    <Compile Include="InheritanceServiceContainer.cs" />
+    <Compile Include="ContextHandle.cs" />
+    <Compile Include="CubeSide.cs" />
+    <Compile Include="Diagnostics\DashCMD.cs" />
+    <Compile Include="Diagnostics\DashCMDScreen.cs" />
+    <Compile Include="Diagnostics\ExceptionInfo.cs" />
+    <Compile Include="Diagnostics\ProgramExceptionHandler.cs" />
+    <Compile Include="GameObject.cs" />
+    <Compile Include="Frustum.cs" />
+    <Compile Include="Graphics\BufferObject.cs" />
+    <Compile Include="Graphics\Camera.cs" />
+    <Compile Include="Graphics\Camera2D.cs" />
+    <Compile Include="Graphics\Color.cs" />
+    <Compile Include="Graphics\Color4.cs" />
+    <Compile Include="Graphics\GameWindow.cs" />
+    <Compile Include="Graphics\GLError.cs" />
+    <Compile Include="Graphics\GLoader.cs" />
+    <Compile Include="Graphics\GLoaderException.cs" />
+    <Compile Include="Graphics\GManager.cs" />
+    <Compile Include="Graphics\GPUResourceException.cs" />
+    <Compile Include="Graphics\GraphicsOptions.cs" />
+    <Compile Include="Graphics\Gui\BorderedImage.cs" />
+    <Compile Include="Graphics\Gui\DashKeyboard.cs" />
+    <Compile Include="Graphics\Gui\FileBrowserWindow.cs" />
+    <Compile Include="Graphics\Gui\Fonts\BMPFont.cs" />
+    <Compile Include="Graphics\Gui\Fonts\BMPFontLoader.cs" />
+    <Compile Include="Graphics\Gui\Fonts\BMPFontEnums.cs" />
+    <Compile Include="Graphics\Gui\GUIArea.cs" />
+    <Compile Include="Graphics\Gui\GUIButton.cs" />
+    <Compile Include="Graphics\Gui\GUICheckBox.cs" />
+    <Compile Include="Graphics\Gui\GUIColorPicker.cs" />
+    <Compile Include="Graphics\Gui\GUIDropDown.cs" />
+    <Compile Include="Graphics\Gui\GUIElement.cs" />
+    <Compile Include="Graphics\Gui\GUIElementDeltaState.cs" />
+    <Compile Include="Graphics\Gui\GUIElementMouseState.cs" />
+    <Compile Include="Graphics\Gui\GUIFrame.cs" />
+    <Compile Include="Graphics\Gui\GUIHierarchy.cs" />
+    <Compile Include="Graphics\Gui\GUILabel.cs" />
+    <Compile Include="Graphics\Gui\GUISystem.cs" />
+    <Compile Include="Graphics\Gui\GUITextField.cs" />
+    <Compile Include="Graphics\Gui\GUITheme.cs" />
+    <Compile Include="Graphics\Gui\GUIWindow.cs" />
+    <Compile Include="Graphics\Gui\GUIWindowBase.cs" />
+    <Compile Include="Graphics\Gui\Image.cs" />
+    <Compile Include="Graphics\Gui\MessageWindow.cs" />
+    <Compile Include="Graphics\Gui\Sprite.cs" />
+    <Compile Include="Graphics\Gui\SpriteBatch.cs" />
+    <Compile Include="Graphics\Gui\SpriteVertexBuffer.cs" />
+    <Compile Include="Graphics\Gui\TextAlign.cs" />
+    <Compile Include="Graphics\Gui\ToolBarCreator.cs" />
+    <Compile Include="Graphics\Gui\ToolBarHelper.cs" />
+    <Compile Include="Graphics\IGraphicsObject.cs" />
+    <Compile Include="Graphics\IO\OBJLoader.cs" />
+    <Compile Include="Graphics\Lighting\Light.cs" />
+    <Compile Include="Graphics\Lighting\LightList.cs" />
+    <Compile Include="Graphics\Lighting\LightType.cs" />
+    <Compile Include="Graphics\LockedBitmap.cs" />
+    <Compile Include="Graphics\Meshes\ColorMesh.cs" />
+    <Compile Include="Graphics\Meshes\ColorMeshBuilder.cs" />
+    <Compile Include="Graphics\Meshes\Mesh.cs" />
+    <Compile Include="Graphics\Meshes\MeshBuilder.cs" />
+    <Compile Include="Graphics\Meshes\SimpleMesh.cs" />
+    <Compile Include="Graphics\Meshes\TextureMesh.cs" />
+    <Compile Include="Graphics\OpenGL\Gl.cs" />
+    <Compile Include="Graphics\OpenGL\GlCore.cs" />
+    <Compile Include="Graphics\OpenGL\GlDelegates.cs" />
+    <Compile Include="Graphics\OpenGL\GlEnum.cs" />
+    <Compile Include="Graphics\OpenGL\GlMethods.cs" />
+    <Compile Include="Graphics\OpenGL\GlReload.cs" />
+    <Compile Include="Graphics\RenderableRay.cs" />
+    <Compile Include="Graphics\Renderers\Base\Renderer.cs" />
+    <Compile Include="Graphics\Renderers\Base\Renderer2D.cs" />
+    <Compile Include="Graphics\Renderers\Base\Renderer3D.cs" />
+    <Compile Include="Graphics\Renderers\ForwardPipeline.cs" />
+    <Compile Include="Graphics\Renderers\GuiRenderer.cs" />
+    <Compile Include="Graphics\Renderers\MasterRenderer.cs" />
+    <Compile Include="Graphics\Renderers\RenderPipeline.cs" />
+    <Compile Include="Graphics\Renderers\SkyboxRenderer.cs" />
+    <Compile Include="Graphics\Renderers\SpriteRenderer.cs" />
+    <Compile Include="Graphics\RenderTargets\FramebufferTexture.cs" />
+    <Compile Include="Graphics\RenderTargets\PostProcessBuffer.cs" />
+    <Compile Include="Graphics\RenderTargets\RenderTarget.cs" />
+    <Compile Include="Graphics\RenderTargets\ShadowMap.cs" />
+    <Compile Include="Graphics\RenderTargets\TexRenderTarget.cs" />
+    <Compile Include="Graphics\Shaders\Base\GLShader.cs" />
+    <Compile Include="Graphics\Shaders\Base\Shader.cs" />
+    <Compile Include="Graphics\Shaders\Base\ShaderProgram.cs" />
+    <Compile Include="Graphics\Shaders\DepthDebugShader.cs" />
+    <Compile Include="Graphics\Shaders\ForwardSpriteShader.cs" />
+    <Compile Include="Graphics\Shaders\GuiShader.cs" />
+    <Compile Include="Graphics\Shaders\PostProcessShader.cs" />
+    <Compile Include="Graphics\Shaders\ShadowShader.cs" />
+    <Compile Include="Graphics\Shaders\SkyboxShader.cs" />
+    <Compile Include="Graphics\Shaders\SpriteShader.cs" />
+    <Compile Include="Graphics\Shaders\WorldShader.cs" />
+    <Compile Include="Graphics\ShadowCamera.cs" />
+    <Compile Include="Graphics\SimpleCamera.cs" />
+    <Compile Include="Graphics\SpriteInstanceBuffer.cs" />
+    <Compile Include="Graphics\StateManager.cs" />
+    <Compile Include="Graphics\Textures\Cubemap.cs" />
+    <Compile Include="Graphics\Textures\GuiTexture.cs" />
+    <Compile Include="Graphics\Textures\Material.cs" />
+    <Compile Include="Graphics\Textures\Texture.cs" />
+    <Compile Include="Graphics\Textures\TextureParamPack.cs" />
+    <Compile Include="IndexPosition.cs" />
+    <Compile Include="Input.cs" />
+    <Compile Include="Interpolation.cs" />
+    <Compile Include="IO\ConfigFile.cs" />
+    <Compile Include="IO\ConfigParseException.cs" />
+    <Compile Include="IO\ConfigSection.cs" />
+    <Compile Include="KeyboardState.cs" />
+    <Compile Include="Line.cs" />
+    <Compile Include="MathHelper.cs" />
+    <Compile Include="Maths.Color.cs" />
+    <Compile Include="Maths.cs" />
+    <Compile Include="Matrix4.cs" />
+    <Compile Include="MiscExtensions.cs" />
+    <Compile Include="MouseState.cs" />
+    <Compile Include="Nybble2.cs" />
+    <Compile Include="Physics\AABBCollisionResolver.cs" />
+    <Compile Include="Physics\DeltaSnapshot.cs" />
+    <Compile Include="OldFrustum.cs" />
+    <Compile Include="Physics\Intersection.cs" />
+    <Compile Include="Physics\IPhysicsEngineExtension.cs" />
+    <Compile Include="Physics\PhysicsEngine.cs" />
+    <Compile Include="Physics\PhysicsBodyComponent.cs" />
+    <Compile Include="Plane.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Quaternion.cs" />
+    <Compile Include="Ray.cs" />
+    <Compile Include="Rectanglei.cs" />
+    <Compile Include="Rectangle.cs" />
+    <Compile Include="Scene.cs" />
+    <Compile Include="SceneComponent.cs" />
+    <Compile Include="StartupArguments.cs" />
+    <Compile Include="Transform.cs" />
+    <Compile Include="UDim.cs" />
+    <Compile Include="Vector2i.cs" />
+    <Compile Include="Vector2.cs" />
+    <Compile Include="Vector3i.cs" />
+    <Compile Include="Vector3.cs" />
+    <Compile Include="Vector4i.cs" />
+    <Compile Include="Vector4.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Dash.Engine.dll.config" />
+    <Compile Include="Maths.Matrix.cs" />
+    <Compile Include="Maths.Vector.cs" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dash.Engine.Graphics.Context\Dash.Engine.Graphics.Context.csproj">
+      <Project>{581817a7-1621-4a74-9261-819ebd1e0f23}</Project>
+      <Name>Dash.Engine.Graphics.Context</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

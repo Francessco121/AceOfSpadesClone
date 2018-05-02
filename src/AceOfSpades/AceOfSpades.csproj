@@ -1,0 +1,212 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4D2374BA-5B6A-4591-BDBB-3770260FA210}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AceOfSpades</RootNamespace>
+    <AssemblyName>AceOfSpadesShared</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssetManager.cs" />
+    <Compile Include="Characters\Character.cs" />
+    <Compile Include="Characters\PlayerDamage.cs" />
+    <Compile Include="CommandPost.cs" />
+    <Compile Include="Gamemode.cs" />
+    <Compile Include="GamemodeType.cs" />
+    <Compile Include="Graphics\Renderers\VoxelRenderer.cs" />
+    <Compile Include="Graphics\VoxelRenderComponent.cs" />
+    <Compile Include="Graphics\IconRenderer.cs" />
+    <Compile Include="IO\WorldDescription.cs" />
+    <Compile Include="IO\IWorldFileIO.cs" />
+    <Compile Include="IO\WorldFileIO_V1.cs" />
+    <Compile Include="IO\WorldFileIO_V2.cs" />
+    <Compile Include="IO\WorldFileIO_V3.cs" />
+    <Compile Include="IO\WorldObjectDescription.cs" />
+    <Compile Include="Net\INetEntity.cs" />
+    <Compile Include="Net\CommandPostEntitySnapshot.cs" />
+    <Compile Include="Net\IntelEntitySnapshot.cs" />
+    <Compile Include="Net\NetEntitySnapshot.cs" />
+    <Compile Include="Net\NetEntityListSnapshot.cs" />
+    <Compile Include="PlayerRaycastResult.cs" />
+    <Compile Include="TerrainRaycastResult.cs" />
+    <Compile Include="Characters\CharacterController.cs" />
+    <Compile Include="Characters\MPPlayer.cs" />
+    <Compile Include="Explosion.cs" />
+    <Compile Include="GrenadeEntity.cs" />
+    <Compile Include="Intel.cs" />
+    <Compile Include="IO\WorldIO.cs" />
+    <Compile Include="MelonEntity.cs" />
+    <Compile Include="Net\AOSChannelType.cs" />
+    <Compile Include="Net\ClientBulletSnapshot.cs" />
+    <Compile Include="Net\HitFeedbackSnapshot.cs" />
+    <Compile Include="Net\IdAllocatorUInt16.cs" />
+    <Compile Include="Net\CustomPacketType.cs" />
+    <Compile Include="Net\ClientInputSnapshot.cs" />
+    <Compile Include="Net\CustomSnapshot.cs" />
+    <Compile Include="Net\DeltaSnapshot.cs" />
+    <Compile Include="Net\INetCreatable.cs" />
+    <Compile Include="Net\NetCreatableCollection.cs" />
+    <Compile Include="Net\NetCreatableInfo.cs" />
+    <Compile Include="Net\GlobalNetwork.cs" />
+    <Compile Include="Net\NetworkBullet.cs" />
+    <Compile Include="Net\NetworkPlayer.cs" />
+    <Compile Include="Net\NetworkPlayerListSnapshot.cs" />
+    <Compile Include="Net\NetworkPlayerSnapshot.cs" />
+    <Compile Include="Net\PlayerSnapshot.cs" />
+    <Compile Include="Net\Snapshot.cs" />
+    <Compile Include="Net\Snapshot.Delta.cs" />
+    <Compile Include="Net\SnapshotField.cs" />
+    <Compile Include="Net\SnapshotFieldType.cs" />
+    <Compile Include="Net\SnapshotId.cs" />
+    <Compile Include="Net\SnapshotPrimitiveType.cs" />
+    <Compile Include="Net\SnapshotStats.cs" />
+    <Compile Include="Net\SnapshotSystem.cs" />
+    <Compile Include="Net\TerrainDeltaSnapshot.cs" />
+    <Compile Include="Net\Trigger.cs" />
+    <Compile Include="Net\WorldSnapshot.cs" />
+    <Compile Include="RaycastResult.cs" />
+    <Compile Include="Team.cs" />
+    <Compile Include="Tools\BlockItem.cs" />
+    <Compile Include="Tools\Grenade.cs" />
+    <Compile Include="Tools\Gun.cs" />
+    <Compile Include="Tools\GunConfig.cs" />
+    <Compile Include="Tools\IMuzzleFlash.cs" />
+    <Compile Include="Tools\ItemConfig.cs" />
+    <Compile Include="Tools\ItemManager.cs" />
+    <Compile Include="Tools\ItemType.cs" />
+    <Compile Include="Tools\ItemViewbob.cs" />
+    <Compile Include="Entity.cs" />
+    <Compile Include="Graphics\Renderers\ChunkRenderer.cs" />
+    <Compile Include="Graphics\Renderers\DebugRenderer.cs" />
+    <Compile Include="Graphics\Renderers\EntityRenderer.cs" />
+    <Compile Include="Graphics\VoxelMesh.cs" />
+    <Compile Include="Graphics\VoxelMeshBuilder.cs" />
+    <Compile Include="IO\IVoxelObjectFileIO.cs" />
+    <Compile Include="IO\VoxelIO.cs" />
+    <Compile Include="IO\VoxelIOException.cs" />
+    <Compile Include="IO\VoxelObjectFileHeader.cs" />
+    <Compile Include="IO\VoxelObjectFileIOV1.cs" />
+    <Compile Include="LibNoise\GradientNoiseBasis.cs" />
+    <Compile Include="LibNoise\IModule.cs" />
+    <Compile Include="LibNoise\NMath.cs" />
+    <Compile Include="LibNoise\Perlin.cs" />
+    <Compile Include="PhysicsBlock.cs" />
+    <Compile Include="Characters\Player.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tools\MelonLauncher.cs" />
+    <Compile Include="Tools\ClientMuzzleFlash.cs" />
+    <Compile Include="Tools\Rifle.cs" />
+    <Compile Include="Tools\ServerMuzzleFlash.cs" />
+    <Compile Include="Tools\Shotgun.cs" />
+    <Compile Include="Tools\SMG.cs" />
+    <Compile Include="TerrainPhysicsExtension.cs" />
+    <Compile Include="Tools\Item.cs" />
+    <Compile Include="Tools\Spade.cs" />
+    <Compile Include="GameVersion.cs" />
+    <Compile Include="Voxels\BlockChange.cs" />
+    <Compile Include="Voxels\ColorGradient.cs" />
+    <Compile Include="Voxels\Block.cs" />
+    <Compile Include="Voxels\Chunk.cs" />
+    <Compile Include="Voxels\FixedTerrain.cs" />
+    <Compile Include="Voxels\Terrain.cs" />
+    <Compile Include="Voxels\NoiseWaves.cs" />
+    <Compile Include="Voxels\TerrainThreading\TerrainWorker.cs" />
+    <Compile Include="Voxels\TerrainThreading\TerrainWorkerAction.cs" />
+    <Compile Include="Voxels\TerrainThreading\TerrainWorkerError.cs" />
+    <Compile Include="Voxels\DebugCube.cs" />
+    <Compile Include="Graphics\VoxelObject.cs" />
+    <Compile Include="Tools\Weapon.cs" />
+    <Compile Include="Voxels\TerrainThreading\TerrainWorkerInstruction.cs" />
+    <Compile Include="Voxels\VoxelPhysicsBody.cs" />
+    <Compile Include="World.cs" />
+    <Compile Include="WorldRaycastResult.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dash.Engine.Graphics.Context\Dash.Engine.Graphics.Context.csproj">
+      <Project>{581817a7-1621-4a74-9261-819ebd1e0f23}</Project>
+      <Name>Dash.Engine.Graphics.Context</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Dash.Engine\Dash.Engine.csproj">
+      <Project>{b8a7fe96-939b-4f3b-a8f8-acb914960aa8}</Project>
+      <Name>Dash.Engine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Dash.Net\Dash.Net.csproj">
+      <Project>{94deb6c7-352c-40ef-b4a5-623ac2c69591}</Project>
+      <Name>Dash.Net</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
