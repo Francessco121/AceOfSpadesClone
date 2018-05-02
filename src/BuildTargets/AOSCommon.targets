@@ -41,7 +41,7 @@
 	<ItemGroup>
 	  <ContentFiles Include="$(InContentDirectory)\**\*.*" />
 	  <ErrorHandlerFile Include="$(InErrorHandler)" />
-	  <NativesFiles Include="$(InNatives)\**\*.*" Exclude=".gitkeep" />
+	  <NativesFiles Include="$(InNatives)\**\*.dll" />
 	</ItemGroup>
     
     <!-- Copy glfw, lua, and openal native binaries to lib folder -->
