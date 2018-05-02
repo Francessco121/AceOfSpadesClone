@@ -16,7 +16,7 @@ namespace AceOfSpades.Editor.World
                 }, //try
                 () => { DashCMD.Stop(); }, //finally
                 () => { } //shutdown action
-                );
+            );
         }
     }
 }

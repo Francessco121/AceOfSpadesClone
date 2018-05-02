@@ -8,9 +8,9 @@ namespace AceOfSpades.Editor.World
     {
         Select,
         Add,
-        Remove,
-        TerrainMove,
+        Delete,
         Paint,
+        TerrainMove,
         Terraform
     }
 }
