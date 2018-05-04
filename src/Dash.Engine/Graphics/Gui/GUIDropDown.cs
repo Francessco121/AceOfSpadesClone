@@ -162,7 +162,7 @@ namespace Dash.Engine.Graphics.Gui
 
             button.opensSub.Visible = false;
             button.opensSub.Parent = this;
-            button.opensSub.Position = new UDim2(1, 0, Size.Y.Scale * ItemCount, Size.Y.Offset * ItemCount);
+            button.opensSub.Position = new UDim2(1, 0, Size.Y.Scale * (ItemCount + (HideMainButton ? -1 : 0)), Size.Y.Offset * ItemCount);
             return btn;
         }
         //<!-- sc -->
@@ -173,7 +173,7 @@ namespace Dash.Engine.Graphics.Gui
 
             opensSub.Visible = false;
             opensSub.Parent = this;
-            opensSub.Position = new UDim2(1, 0, Size.Y.Scale * ItemCount, Size.Y.Offset * ItemCount);
+            opensSub.Position = new UDim2(1, 0, Size.Y.Scale * (ItemCount + (HideMainButton ? -1 : 0)), Size.Y.Offset * ItemCount);
             return btn;
         }
 
