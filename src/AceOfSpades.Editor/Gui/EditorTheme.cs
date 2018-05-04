@@ -15,10 +15,10 @@ namespace AceOfSpades.Editor.Gui
             {
                 GUITheme t = new GUITheme();
 
-                t.SetField("Button.NormalImage", Image.CreateBlank(Color.fromHtml("#1E1E1E", .2f)));
+                t.SetField("Button.NormalImage", Image.CreateBlank(Color.fromHtml("#1E1E1E", .4f)));
                 t.SetField("Button.HoverImage", Image.CreateBlank(Color.fromHtml("#848484", .8f)));
-                t.SetField("Button.ActiveImage", Image.CreateBlank(Color.fromHtml("#8E8E8E", .5f)));
-                t.SetField("Button.ToggledImage", Image.CreateBlank(Color.fromHtml("#595959", .7f)));
+                t.SetField("Button.ActiveImage", Image.CreateBlank(Color.fromHtml("#8E8E8E", .6f)));
+                t.SetField("Button.ToggledImage", Image.CreateBlank(Color.fromHtml("#595959", .9f)));
                 t.SetField("Button.TextColor", Color.fromHtml("#ddd"));
 
                 t.SetField("TextField.NormalImage", Image.CreateBlank(Color.fromHtml("#515151")));
@@ -28,11 +28,11 @@ namespace AceOfSpades.Editor.Gui
                 t.SetField("Label.TextColor", Color.fromHtml("#ddd"));
                 t.SetField("Label.TextShadowColor", Color.fromHtml("#000", 0.6f));
 
-                t.SetField("Frame.Image", Image.CreateBlank(Color.fromHtml("#1E1E1E", .6f)));
+                t.SetField("Frame.Image", Image.CreateBlank(Color.fromHtml("#1E1E1E", .9f)));
 
-                t.SetField("Window.BackgroundImage", Image.CreateBlank(Color.fromHtml("#1E1E1E", .6f)));
+                t.SetField("Window.BackgroundImage", Image.CreateBlank(Color.fromHtml("#1E1E1E", .9f)));
 
-                t.SetField("SmallFont", AssetManager.LoadFont("karmasuture-12"));
+                t.SetField("SmallFont", AssetManager.LoadFont("arial-11"));
                 t.SetField("Font", AssetManager.LoadFont("arial-14"));
                 t.SetField("BigFont", AssetManager.LoadFont("arial-18"));
 
