@@ -14,11 +14,11 @@ namespace AceOfSpades.Editor.Models
         public MainWindow Window { get; }
         public ModelEditor ModelEditor { get; }
         public VoxelEditorObject Model { get; private set; }
+        public VoxelGridObject VoxelGrid { get; private set; }
+        public bool RenderGrid { get; set; } = true;
 
         readonly MasterRenderer renderer;
         readonly EntityRenderer entReneder;
-
-        VoxelGridObject voxelGrid;
 
         public EditorScreen(MainWindow window, MasterRenderer renderer)
         {
@@ -55,22 +55,32 @@ namespace AceOfSpades.Editor.Models
                 Window.UpdateTitle(name);
                 CurrentFile = name;
 
-                if (voxelGrid != null)
-                    voxelGrid.Dispose();
+                if (VoxelGrid != null)
+                    VoxelGrid.Dispose();
 
-                voxelGrid = new VoxelGridObject(Model);
+                VoxelGrid = new VoxelGridObject(Model);
                 Camera.Active.SetTarget(Model.CenterPosition);
             }
         }
 
         public void LoadNewModel()
         {
-            Model = new VoxelEditorObject(new VoxelObject(1f));
-            voxelGrid = new VoxelGridObject(Model);
+            Model = new VoxelEditorObject(20, 20, 20, 1f);
+            VoxelGrid = new VoxelGridObject(Model);
             Camera.Active.Position = Vector3.Zero;
             Camera.Active.SetTarget(Model.CenterPosition);
             Window.UpdateTitle(null);
             CurrentFile = null;
+        }
+
+        public void UpdateGrid()
+        {
+            if (VoxelGrid != null)
+            {
+                VoxelGrid.Dispose();
+
+                VoxelGrid = new VoxelGridObject(Model);
+            }
         }
 
         public void Update(float deltaTime)
@@ -81,44 +91,13 @@ namespace AceOfSpades.Editor.Models
             }
 
             UI.Update(deltaTime);
-
-            
-
-            //if (Model != null)
-            //{
-            //    Ray MouseRay = Camera.Active.MouseRay;
-            //    IndexPosition blockNormalOffsetIndex = IndexPosition.Zero;
-            //    IndexPosition MouseIndexPos = IndexPosition.Zero;
-            //    CubeSide ModelSide = CubeSide.Bottom;
-            //    Vector3 normal = Vector3.Zero;
-            //    bool intersections = false;
-            //    Color voxelColor = new Color(236, 157, 196);
-
-            //    if (intersections = Model.RayIntersects(MouseRay, out MouseIndexPos, out ModelSide))
-            //    {
-            //        normal = Maths.CubeSideToSurfaceNormal(ModelSide);
-            //        blockNormalOffsetIndex = new IndexPosition(
-            //                MouseIndexPos.X + (int)normal.X,
-            //                MouseIndexPos.Y + (int)normal.Y,
-            //                MouseIndexPos.Z + (int)normal.Z);
-            //    }
-            //    if (Model.IsBlockCoordInRange(MouseIndexPos) && intersections)
-            //    {
-            //        if (Input.GetMouseButtonDown(MouseButton.Left))
-            //        {
-            //            Model.ChangeBlock(blockNormalOffsetIndex, new Block(1,
-            //                voxelColor.R, voxelColor.G, voxelColor.B));
-            //        }
-            //    }
-            //}
-
         }
 
         public void Draw()
         {
-            if (voxelGrid != null)
+            if (VoxelGrid != null && RenderGrid)
             {
-                entReneder.Batch(voxelGrid, Vector3.Zero);
+                entReneder.Batch(VoxelGrid, Vector3.Zero);
             }
 
             if (Model != null)

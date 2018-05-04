@@ -21,32 +21,41 @@ namespace AceOfSpades.Editor.Models
 
             tools = new Dictionary<EditorToolType, EditorTool>();
 
-            AddTool(new NoneTool(screen, this));
             AddTool(new AddTool(screen, this));
-
-            SetToolType(EditorToolType.None);
+            AddTool(new DeleteTool(screen, this));
+            AddTool(new PaintTool(screen, this));
+            AddTool(new EyedropperTool(screen, this));
         }
 
-        public void SetToolType(EditorToolType type)
+        public void SetToolType(EditorToolType? type)
         {
-            EditorTool tool;
-            if (tools.TryGetValue(type, out tool))
-                EquipTool(tool);
+            if (type.HasValue)
+            {
+                EditorTool tool;
+                if (tools.TryGetValue(type.Value, out tool))
+                    EquipTool(tool);
+                else
+                    throw new ArgumentException($"No such tool of type '{type}' is defined!");
+            }
             else
-                throw new ArgumentException($"No such tool of type '{type}' is defined!");
+            {
+                UnequipTool();
+            }
         }
 
         public void Update(float deltaTime)
         {
-            // Try equip tool
+            // Update mouse raycast
+            raycastResult = screen.Model.Raycast(Camera.Active.MouseRay, screen.Model.CubeSize);
+
+            // Ignore input if the UI is already handling input
             if (!GUISystem.HandledMouseInput)
             {
+                // Try equip tool
                 if (Input.GetKeyDown(Key.Tilde))
                 {
-                    if (selectedTool != null)
-                        selectedTool.Unequipped();
-
-                    selectedTool = null;
+                    UnequipTool();
+                    screen.UI.SetToolType(null);
                 }
                 else
                 {
@@ -60,10 +69,15 @@ namespace AceOfSpades.Editor.Models
                         }
                     }
                 }
+
+                // Center camera on middle mouse
+                if (raycastResult.Intersects && Input.GetMouseButtonDown(MouseButton.Middle))
+                {
+                    Camera.Active.SetTarget(raycastResult.IntersectedBlockIndex.Value * screen.Model.CubeSize);
+                }
             }
 
-            raycastResult = screen.Model.Raycast(Camera.Active.MouseRay, screen.Model.CubeSize);
-
+            // Update currently selected tool
             if (selectedTool != null)
             {
                 selectedTool.Update(raycastResult, deltaTime);

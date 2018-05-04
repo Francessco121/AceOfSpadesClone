@@ -1,4 +1,5 @@
 ﻿using AceOfSpades.Editor.Gui;
+using AceOfSpades.Editor.Models.Gui;
 using Dash.Engine;
 using Dash.Engine.Graphics;
 using Dash.Engine.Graphics.Gui;
@@ -26,6 +27,7 @@ namespace AceOfSpades.Editor.Models
         GUILabel currentToolLabel;
         FileBrowserWindow openFileWindow;
         FileBrowserWindow saveFileWindow;
+        SetCubeSizeWindow setCubeSizeWindow;
         MessageWindow popup;
 
         public EditorUI(MasterRenderer renderer, EditorScreen screen)
@@ -51,7 +53,7 @@ namespace AceOfSpades.Editor.Models
             fileMenu.AddItem("Save As...", null, (d, b) => { saveFileWindow.Visible = true; });
 
             GUIDropDown editMenu = new GUIDropDown(new UDim2(0, menuItemWidth, 0, 0), new UDim2(0, menuItemWidth, 1, 0), Theme, false) { Parent = topBar, Text = "Edit" };
-
+            
             GUIDropDown editModeMenu = new GUIDropDown(UDim2.Zero, new UDim2(0, menuItemWidth, 1, 0), Theme, false) { HideMainButton = true };
             editMenu.AddItemSub("Mode", editModeMenu);
             editModeButtons = new GUIDropDownButton[] {
@@ -59,19 +61,55 @@ namespace AceOfSpades.Editor.Models
                 editModeMenu.AddItem("Add", null, OnEditModeSelected),
                 editModeMenu.AddItem("Delete", null, OnEditModeSelected),
                 editModeMenu.AddItem("Paint", null, OnEditModeSelected),
-                editModeMenu.AddItem("Move", null, OnEditModeSelected),
+                editModeMenu.AddItem("Eyedropper", null, OnEditModeSelected),
             };
 
             editModeButtons[0].Toggled = true;
+
+            editMenu.AddItem("Set Cube Size...", null, (d, b) => { setCubeSizeWindow.Visible = true; });
+
+            GUIDropDown flipMenu = new GUIDropDown(UDim2.Zero, new UDim2(0, menuItemWidth, 1, 0), Theme, false) { HideMainButton = true };
+            editMenu.AddItemSub("Flip", flipMenu);
+            flipMenu.AddItem("X", null, (d, b) => { screen.Model?.FlipX(); screen.UpdateGrid(); });
+            flipMenu.AddItem("Y", null, (d, b) => { screen.Model?.FlipY(); screen.UpdateGrid(); });
+            flipMenu.AddItem("Z", null, (d, b) => { screen.Model?.FlipZ(); screen.UpdateGrid(); });
+
+            GUIDropDown rotateMenu = new GUIDropDown(UDim2.Zero, new UDim2(0, menuItemWidth, 1, 0), Theme, false) { HideMainButton = true };
+            editMenu.AddItemSub("Rotate", rotateMenu);
+
+            GUIDropDown rotateXMenu = new GUIDropDown(UDim2.Zero, new UDim2(0, menuItemWidth, 1, 0), Theme, false) { HideMainButton = true };
+            rotateMenu.AddItemSub("X", rotateXMenu);
+            rotateXMenu.AddItem("90 deg", null, (d, b) => { screen.Model?.RotateX(1); screen.UpdateGrid(); });
+            rotateXMenu.AddItem("180 deg", null, (d, b) => { screen.Model?.RotateX(2); screen.UpdateGrid(); });
+            rotateXMenu.AddItem("270 deg", null, (d, b) => { screen.Model?.RotateX(3); screen.UpdateGrid(); });
+
+            GUIDropDown rotateYMenu = new GUIDropDown(UDim2.Zero, new UDim2(0, menuItemWidth, 1, 0), Theme, false) { HideMainButton = true };
+            rotateMenu.AddItemSub("Y", rotateYMenu);
+            rotateYMenu.AddItem("90 deg", null, (d, b) => { screen.Model?.RotateY(1); screen.UpdateGrid(); });
+            rotateYMenu.AddItem("180 deg", null, (d, b) => { screen.Model?.RotateY(2); screen.UpdateGrid(); });
+            rotateYMenu.AddItem("270 deg", null, (d, b) => { screen.Model?.RotateY(3); screen.UpdateGrid(); });
+
+            GUIDropDown rotateZMenu = new GUIDropDown(UDim2.Zero, new UDim2(0, menuItemWidth, 1, 0), Theme, false) { HideMainButton = true };
+            rotateMenu.AddItemSub("Z", rotateZMenu);
+            rotateZMenu.AddItem("90 deg", null, (d, b) => { screen.Model?.RotateZ(1); screen.UpdateGrid(); });
+            rotateZMenu.AddItem("180 deg", null, (d, b) => { screen.Model?.RotateZ(2); screen.UpdateGrid(); });
+            rotateZMenu.AddItem("270 deg", null, (d, b) => { screen.Model?.RotateZ(3); screen.UpdateGrid(); });
+
+            editMenu.AddItem("Shrink To Fit", null, (d, b) => { screen.Model?.ShrinkToFit(); screen.UpdateGrid(); });
 
             GUIDropDown gfxMenu = new GUIDropDown(new UDim2(0, menuItemWidth * 2, 0, 0), new UDim2(0, menuItemWidth, 1, 0), Theme, false)
             { Parent = topBar, Text = "Graphics" };
             gfxMenu.AddItem("FXAA", null, (d, b) => { TogglePostProcess(b, true); });
 
             GUIDropDown viewMenu = new GUIDropDown(new UDim2(0, menuItemWidth * 3, 0, 0), new UDim2(0, menuItemWidth, 1, 0), Theme, false) { Parent = topBar, Text = "View" };
-            viewMenu.AddItem("Color Picker", null, (d, b) => { ColorWindow.Visible = true; });
 
-            currentToolLabel = new GUILabel(new UDim2(1f, -5, 0, 5), UDim2.Zero, "Current Tool: None", TextAlign.TopRight, Theme) { Parent = topBar };
+            GUIDropDownButton gridViewBtn = viewMenu.AddItem("Grid", null, (d, b) => { b.Toggled = (screen.RenderGrid = !screen.RenderGrid); });
+            gridViewBtn.Toggled = true;
+
+            viewMenu.AddItem("Color Picker", null, (d, b) => { ColorWindow.Visible = true; });
+            viewMenu.AddItem("Center Camera", null, (d, b) => { Camera.Active.SetTarget(screen.Model.CenterPosition); });
+
+            currentToolLabel = new GUILabel(new UDim2(1f, -5, 0.5f, 0), UDim2.Zero, "Current Tool: None", TextAlign.Right, Theme) { Parent = topBar };
 
             SetupDefaultGraphicsSettings(gfxMenu);
             area.AddTopLevel(topBar);
@@ -103,6 +141,8 @@ namespace AceOfSpades.Editor.Models
                     screen.SaveModel(fullPath);
                 });
 
+            setCubeSizeWindow = new SetCubeSizeWindow(GUISystem, screen, Theme);
+
             ColorWindow = new GUIColorPickerWindow(GUISystem, new UDim2(0.3f, 0, 0.3f, 0), Theme);
             ColorWindow.Visible = true;
             ColorWindow.Position = new UDim2(0.7f, -10, 0.7f, -10);
@@ -113,7 +153,7 @@ namespace AceOfSpades.Editor.Models
             popup.MinSize = new UDim2(0, 215, 0, 200);
             popup.MaxSize = new UDim2(0, 600, 0, 275);
 
-            GUISystem.Add(ColorWindow, openFileWindow, saveFileWindow, popup);
+            GUISystem.Add(ColorWindow, openFileWindow, saveFileWindow, setCubeSizeWindow, popup);
         }
 
         public void ShowPopup(string title, string message)
@@ -130,8 +170,14 @@ namespace AceOfSpades.Editor.Models
         public void Update(float deltaTime)
         {
             if (screen.Model != null)
-                statusLeft.Text = string.Format("Dimensions: {0}x{1}x{2}",
-                    screen.Model.Width, screen.Model.Height, screen.Model.Depth);
+            {
+                VoxelEditorObject model = screen.Model;
+
+                statusLeft.Text = $"Dimensions: {model.Width}x{model.Height}x{model.Depth} " +
+                    $"| Cube Size: {model.CubeSize} " +
+                    $"| Block Count: {model.BlockCount} " +
+                    $"| Triangle Count: {model.TriangleCount} ";
+            }
             else
                 statusLeft.Text = "";
 
@@ -149,20 +195,24 @@ namespace AceOfSpades.Editor.Models
             fxaa = renderer.GFXSettings.ApplyFXAA;
         }
 
-        public void SetToolType(EditorToolType mode)
+        public void SetToolType(EditorToolType? mode)
         {
             for (int i = 0; i < editModeButtons.Length; i++)
                 editModeButtons[i].Toggled = false;
 
-            editModeButtons[(int)mode].Toggled = true;
-            currentToolLabel.Text = string.Format("Current Tool: {0}", mode);
+            if (mode.HasValue)
+                editModeButtons[(int)(mode + 1)].Toggled = true;
+            else
+                editModeButtons[0].Toggled = true;
+
+            currentToolLabel.Text = string.Format("Current Tool: {0}", mode.HasValue ? mode.ToString() : "None");
         }
 
         void OnEditModeSelected(GUIDropDown dropDown, GUIDropDownButton btn)
         {
-            EditorToolType mode = (EditorToolType)btn.Index;
+            EditorToolType? mode = btn.Index == 0 ? (EditorToolType?)null: (EditorToolType)(btn.Index - 1);
             SetToolType(mode);
-            SetToolType(mode);
+            screen.ModelEditor.SetToolType(mode);
         }
     }
 }

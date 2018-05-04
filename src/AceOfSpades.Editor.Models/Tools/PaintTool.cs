@@ -5,19 +5,24 @@ using Dash.Engine.Graphics.Gui;
 
 namespace AceOfSpades.Editor.Models.Tools
 {
-    class AddTool : EditorTool
+    class PaintTool : EditorTool
     {
         readonly EntityRenderer entRenderer;
 
         static DebugCube cursorCube;
 
-        public AddTool(EditorScreen screen, ModelEditor editor) 
-            : base(screen, editor, EditorToolType.Add, Key.Number1)
+        public PaintTool(EditorScreen screen, ModelEditor editor) 
+            : base(screen, editor, EditorToolType.Paint, Key.Number3)
         {
             entRenderer = Renderer.GetRenderer3D<EntityRenderer>();
 
             if (cursorCube == null)
+            {
                 cursorCube = new DebugCube(Color4.White, 1f);
+                cursorCube.RenderAsWireframe = true;
+                cursorCube.ApplyNoLighting = true;
+                cursorCube.OnlyRenderFor = RenderPass.Normal;
+            }
         }
 
         public override void Update(VoxelObjectRaycastResult intersection, float deltaTime)
@@ -25,19 +30,20 @@ namespace AceOfSpades.Editor.Models.Tools
             if (GUISystem.HandledMouseInput)
                 return;
 
-            if (intersection.Intersects && Input.GetMouseButtonDown(MouseButton.Left))
+            if (intersection.Intersects && Input.GetMouseButton(MouseButton.Left))
             {
-                Vector3 intersectionNormal = Maths.CubeSideToSurfaceNormal(intersection.IntersectionSide.Value);
+                IndexPosition blockIndexPosition = intersection.IntersectedBlockIndex.Value;
 
-                IndexPosition blockIndexPosition = new IndexPosition(
-                    intersection.IntersectedBlockIndex.Value.X + (int)intersectionNormal.X,
-                    intersection.IntersectedBlockIndex.Value.Y + (int)intersectionNormal.Y,
-                    intersection.IntersectedBlockIndex.Value.Z + (int)intersectionNormal.Z);
+                Color color = UI.ColorWindow.ColorPicker.Color;
 
-                if (Screen.Model.IsBlockCoordInRange(blockIndexPosition))
+                Block existingBlock = Screen.Model.Blocks[blockIndexPosition.Z, blockIndexPosition.Y, blockIndexPosition.X];
+
+                Block newBlock = new Block(Block.STONE.Material, color.R, color.G, color.B);
+
+                // Don't constantly recreate the mesh if we're not actually changing this block
+                if (existingBlock.Material != newBlock.Material || existingBlock.R != newBlock.R 
+                    || existingBlock.G != newBlock.G || existingBlock.B != newBlock.B)
                 {
-                    Color color = UI.ColorWindow.ColorPicker.Color;
-
                     Screen.Model.ChangeBlock(blockIndexPosition, new Block(Block.STONE.Material,
                         color.R, color.G, color.B));
                 }
@@ -51,8 +57,7 @@ namespace AceOfSpades.Editor.Models.Tools
 
             if (intersection.Intersects)
             {
-                cursorCube.Position = (intersection.IntersectedBlockIndex.Value * Screen.Model.CubeSize)
-                    + (Maths.CubeSideToSurfaceNormal(intersection.IntersectionSide.Value) * Screen.Model.CubeSize);
+                cursorCube.Position = intersection.IntersectedBlockIndex.Value * Screen.Model.CubeSize;
 
                 cursorCube.VoxelObject.MeshScale = new Vector3(Screen.Model.CubeSize);
 

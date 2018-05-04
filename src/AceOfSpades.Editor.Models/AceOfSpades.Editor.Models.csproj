@@ -70,12 +70,15 @@
     <Compile Include="EditorTool.cs" />
     <Compile Include="EditorToolType.cs" />
     <Compile Include="EditorUI.cs" />
+    <Compile Include="Gui\SetCubeSizeWindow.cs" />
     <Compile Include="MainWindow.cs" />
     <Compile Include="ModelEditor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tools\EyedropperTool.cs" />
+    <Compile Include="Tools\PaintTool.cs" />
     <Compile Include="Tools\AddTool.cs" />
-    <Compile Include="Tools\NoneTool.cs" />
+    <Compile Include="Tools\DeleteTool.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AceOfSpades.Editor\AceOfSpades.Editor.csproj">

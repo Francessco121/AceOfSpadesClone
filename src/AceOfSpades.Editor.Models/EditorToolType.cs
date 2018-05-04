@@ -2,10 +2,9 @@
 {
     enum EditorToolType
     {
-        None,
         Add,
         Delete,
         Paint,
-        Move
+        Eyedropper
     }
 }
