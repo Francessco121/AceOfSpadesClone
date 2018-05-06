@@ -21,7 +21,7 @@ namespace AceOfSpades
     /// </summary>
     public class GameVersion
     {
-        public static readonly GameVersion Current = new GameVersion(GameVersionPhase.Alpha, 3, 1);
+        public static readonly GameVersion Current = new GameVersion(GameVersionPhase.Alpha, 3, 2);
 
         public GameVersionPhase Phase { get; }
         public uint Major { get; }
