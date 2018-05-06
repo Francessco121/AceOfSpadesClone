@@ -73,19 +73,29 @@ namespace Dash.Engine.Graphics
             // Link Program
             GL.LinkProgram(Program.ProgramId);
 
+            int linkStatus = GL.GetProgram(Program.ProgramId, ProgramParameter.LinkStatus);
+            if (linkStatus == 0)
+            {
+                string programState = GL.GetProgramInfoLog(Program.ProgramId);
+                throw new GPUResourceException(String.Format("Program Failed to Link. Vertex: {1}, Fragment: {2}, Reason: {0}",
+                    programState, vertexFilePath, fragmentFilePath));
+            }
+
+            // Validate the program
+            GL.ValidateProgram(Program.ProgramId);
+
+            int validateStatus = GL.GetProgram(Program.ProgramId, ProgramParameter.ValidateStatus);
+            if (validateStatus == 0)
+            {
+                string programState = GL.GetProgramInfoLog(Program.ProgramId);
+                throw new GPUResourceException(String.Format("Program Failed to Validate. Vertex: {1}, Fragment: {2}, Reason: {0}",
+                    programState, vertexFilePath, fragmentFilePath));
+            }
+
             // Connect texture units
             Start();
             this.ConnectTextureUnits();
             Stop();
-            
-            // Validate the program
-            GL.ValidateProgram(Program.ProgramId);
-            int state = GL.GetProgram(Program.ProgramId, ProgramParameter.ValidateStatus);
-            if (state == 0)
-            {
-                string programState = GL.GetProgramInfoLog(Program.ProgramId);
-                throw new GPUResourceException(String.Format("Program Failed to Validate. Reason: {0}", programState));
-            }
         }
 
         public void Start()
