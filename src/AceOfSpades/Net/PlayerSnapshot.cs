@@ -1,5 +1,4 @@
-﻿using Dash.Engine.Diagnostics;
-using Dash.Net;
+﻿using Dash.Net;
 using System;
 
 /* PlayerSnapshot.cs
@@ -20,12 +19,6 @@ namespace AceOfSpades.Net
             set { netId.Value = value; }
         }
 
-        public ushort Sequence
-        {
-            get { return (ushort)sequence.Value; }
-            set { sequence.Value = value; }
-        }
-
         public float X
         {
             get { return (float)x.Value; }
@@ -43,7 +36,6 @@ namespace AceOfSpades.Net
         }
 
         public bool IsCrouching { get; set; }
-        public bool IsGrounded { get; set; }
         public bool IsFlashlightOn { get; set; }
 
         public float CamYaw
@@ -109,7 +101,6 @@ namespace AceOfSpades.Net
         public HitFeedbackSnapshot HitFeedbackSnapshot { get; }
 
         SnapshotField netId;
-        SnapshotField sequence;
         SnapshotField x;
         SnapshotField y;
         SnapshotField z;
@@ -137,7 +128,6 @@ namespace AceOfSpades.Net
             IsOwner = isOwner;
 
             netId = AddPrimitiveField(id);
-            sequence = AddPrimitiveField<ushort>();
 
             x = AddPrimitiveField<float>();
             y = AddPrimitiveField<float>();
@@ -178,8 +168,7 @@ namespace AceOfSpades.Net
         {
             ByteFlag stateFlag = new ByteFlag();
             stateFlag.Set(0, IsCrouching);
-            stateFlag.Set(1, IsGrounded);
-            stateFlag.Set(2, IsFlashlightOn);
+            stateFlag.Set(1, IsFlashlightOn);
 
             this.stateFlag.Value = stateFlag;
 
@@ -192,8 +181,7 @@ namespace AceOfSpades.Net
 
             ByteFlag stateFlag = (ByteFlag)this.stateFlag.Value;
             IsCrouching = stateFlag.Get(0);
-            IsGrounded = stateFlag.Get(1);
-            IsFlashlightOn = stateFlag.Get(2);
+            IsFlashlightOn = stateFlag.Get(1);
 
             if (NetId != initId)
                 throw new Exception(string.Format(

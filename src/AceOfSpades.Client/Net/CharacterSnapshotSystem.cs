@@ -110,7 +110,7 @@ namespace AceOfSpades.Client.Net
 
                 // Grab current client snapshot
                 ourPlayer.OnClientOutbound(snapshotComponent.SnapshotRoundTripTime);
-                ourPlayer.ClientInput.Serialize(packet);
+                ourPlayer.ClientSnapshot.Serialize(packet);
                 ourPlayer.OnPostClientOutbound();
             }
             else

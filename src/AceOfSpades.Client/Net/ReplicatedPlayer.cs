@@ -17,7 +17,6 @@ namespace AceOfSpades.Client.Net
         FloatAnim yawAnim;
         FloatAnim pitchAnim;
         SimpleCamera camera;
-        bool serverGrounded;
 
         public ReplicatedPlayer(MasterRenderer renderer, World world, SimpleCamera camera, Vector3 position, Team team)
             : base(renderer, world, camera, position, team)
@@ -104,7 +103,6 @@ namespace AceOfSpades.Client.Net
 
             flashlight.Visible = snapshot.IsFlashlightOn;
             
-            serverGrounded = snapshot.IsGrounded;
             CharacterController.IsCrouching = snapshot.IsCrouching;
         }
     }

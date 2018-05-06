@@ -14,36 +14,36 @@ using System.Collections.Generic;
 
 namespace AceOfSpades.Server
 {
+    /// <summary>
+    /// A snapshot of a player's transform.
+    /// </summary>
     public class PlayerTransform
     {
         public int Ticks { get; }
         public Vector3 Position { get; }
         public float CameraYaw { get; }
         public float CameraPitch { get; }
-        public bool IsGrounded { get; }
 
-        public PlayerTransform(Vector3 position, float camYaw, float camPitch, bool grounded)
+        public PlayerTransform(Vector3 position, float camYaw, float camPitch)
         {
             Ticks = Environment.TickCount;
             Position = position;
             CameraYaw = camYaw;
             CameraPitch = camPitch;
-            IsGrounded = grounded;
         }
 
-        public PlayerTransform(Vector3 position, float camYaw, float camPitch, bool grounded, int tickCount)
+        public PlayerTransform(Vector3 position, float camYaw, float camPitch, int tickCount)
         {
             Ticks = tickCount;
             Position = position;
             CameraYaw = camYaw;
             CameraPitch = camPitch;
-            IsGrounded = grounded;
         }
     }
 
     public class ServerMPPlayer : MPPlayer
     {
-        public ClientInputSnapshot ClientInput { get; private set; }
+        public ClientPlayerSnapshot ClientSnapshot { get; private set; }
         public int LastBulletDeltaTime { get; private set; }
         public bool HasIntel { get { return Intel != null; } }
         public Intel Intel { get; private set; }
@@ -54,13 +54,9 @@ namespace AceOfSpades.Server
         float refreshCooldown;
 
         SimpleCamera camera;
-        bool serverFlashlight;
         List<PlayerTransform> playerTransforms;
 
         Queue<NetworkBullet> bulletsToFire;
-        bool forceNextJump;
-
-        int currentMovementSnapshotIndex;
 
         public ServerMPPlayer(World world, Vector3 position, Team team)
              : base(null, world, new SimpleCamera(), position, team)
@@ -70,11 +66,20 @@ namespace AceOfSpades.Server
             playerTransforms = new List<PlayerTransform>();
             bulletsToFire = new Queue<NetworkBullet>();
 
+            // Let client's handle movement. 
+            // - We don't need to bother with terrain collision, only entity collision.
+            // - Gravity shouldn't be bother with either.
+            CharacterController.CanCollideWithTerrain = false;
+            CharacterController.IsAffectedByGravity = false;
+
             CharacterController.OnCollision += CharacterController_OnCollision;
             
             CreateStarterBackpack();
         }
 
+        /// <summary>
+        /// Refills the player's ammo and blocks if the refresh cooldown has passed.
+        /// </summary>
         public void Refresh()
         {
             if (refreshCooldown <= 0)
@@ -113,51 +118,28 @@ namespace AceOfSpades.Server
             base.OnNetworkInstantiated(stateInfo);
 
             SnapshotNetComponent snc = AOSServer.Instance.GetComponent<SnapshotNetComponent>();
-            ClientInput = new ClientInputSnapshot(snc.SnapshotSystem, stateInfo.Owner, true);
+            ClientSnapshot = new ClientPlayerSnapshot(snc.SnapshotSystem, stateInfo.Owner, true);
         }
 
         protected override void Update(float deltaTime)
         {
             if (StateInfo != null)
             {
-                if (currentMovementSnapshotIndex < ClientInput.MovementSnapshot.Movements.Count - 1)
-                {
-                    NetworkClientMovement movement = ClientInput.MovementSnapshot.Movements[currentMovementSnapshotIndex];
+                // TODO: Should we interpolate our server-side position?
 
-                    camera.Yaw = movement.CameraYaw;
-                    camera.Pitch = movement.CameraPitch;
+                // Sync our server transform with the client's reported position
+                Transform.Position.X = ClientSnapshot.X;
+                Transform.Position.Y = ClientSnapshot.Y;
+                Transform.Position.Z = ClientSnapshot.Z;
 
-                    IsAiming = ClientInput.IsAiming;
-                    IsSprinting = CharacterController.IsMoving && CharacterController.DeltaPosition.Length > 0 && !IsAiming
-                        && !CharacterController.IsCrouching && !movement.Walk && movement.Sprint;
+                // Sync our server camera with the client's
+                camera.Yaw = ClientSnapshot.CamYaw;
+                camera.Pitch = ClientSnapshot.CamPitch;
 
-                    // Move the character
-                    Vector3 move = Vector3.Zero;
-                    if (movement.MoveForward) move.Z -= 1;
-                    if (movement.MoveBackward) move.Z += 1;
-                    if (movement.MoveLeft) move.X += 1;
-                    if (movement.MoveRight) move.X -= 1;
+                // Update item in hand 
+                ItemManager.Update(false, false, false, false, ClientSnapshot.Reload, deltaTime);
 
-                    UpdateMoveVector(move, movement.Jump, movement.Sprint, IsWalking = movement.Walk,
-                        speedMultiplier: Math.Max(movement.Length / deltaTime, 1f));
-
-                    if (movement.Crouch)
-                        CharacterController.IsCrouching = true;
-                    else if (CharacterController.IsCrouching)
-                        CharacterController.TryUncrouch(World);
-
-                    // Decrease the movement snapshots length and move to the next one if we've
-                    // simulated it fully.
-                    movement.Length -= deltaTime;
-
-                    if (movement.Length <= 0)
-                        currentMovementSnapshotIndex++;
-                }
-
-                // Update item in hand
-                ItemManager.Update(false, false, false, false, ClientInput.Reload, deltaTime);
-
-                // Little saftey check
+                // Only process bullets if the player is alive
                 if (Health > 0)
                 {
                     while (bulletsToFire.Count > 0)
@@ -176,18 +158,15 @@ namespace AceOfSpades.Server
                     }
                 }
 
-                if (forceNextJump)
-                {
-                    forceNextJump = false;
-                    CharacterController.MoveVector.SetY(JUMP_POWER);
-                }
-
-                if (ClientInput.DropIntel)
+                // Handle the client dropping intel
+                if (ClientSnapshot.DropIntel)
                     DropIntel();
 
+                // Handle the player falling off the map
                 if (Transform.Position.Y < -200)
                     this.Damage(100, "The Void");
 
+                // Process refresh cooldown
                 if (refreshCooldown > 0)
                     refreshCooldown -= deltaTime;
 
@@ -195,6 +174,7 @@ namespace AceOfSpades.Server
                 camera.Position = Transform.Position + new Vector3(0, Size.Y / 2f - 1.1f, 0);
                 camera.Update(deltaTime);
 
+                // Save the current transform for future rollbacks
                 StoreCurrentTransform();
             }
 
@@ -205,9 +185,7 @@ namespace AceOfSpades.Server
         {
             if (Intel == null)
             {
-                Intel intel = e.GameObject as Intel;
-
-                if (intel != null)
+                if (e.GameObject is Intel intel)
                 {
                     if (intel.RequestOwnership(this))
                     {
@@ -220,6 +198,8 @@ namespace AceOfSpades.Server
 
         public void DropIntel()
         {
+            // TODO: Keep intertia when dropping intel
+
             if (Intel != null)
             {
                 Intel.Drop();
@@ -281,22 +261,19 @@ namespace AceOfSpades.Server
                 float camPitch = Interpolation.LerpDegrees(pt2.CameraPitch, pt1.CameraPitch, timeI);
                 float camYaw = Interpolation.LerpDegrees(pt2.CameraYaw, pt1.CameraYaw, timeI);
 
-                return new PlayerTransform(position, camYaw, camPitch, 
-                    timeI < 0.5f ? pt2.IsGrounded : pt1.IsGrounded, timeFrame);
+                return new PlayerTransform(position, camYaw, camPitch, timeFrame);
             }
             else if (pt1 != null && pt2 == null)
                 // Take pt1
                 return pt1;
             else
                 // Take current
-                return new PlayerTransform(Transform.Position, camera.Yaw, camera.Pitch, 
-                    CharacterController.IsGrounded, Environment.TickCount);
+                return new PlayerTransform(Transform.Position, camera.Yaw, camera.Pitch, Environment.TickCount);
         }
 
         void StoreCurrentTransform()
         {
-            PlayerTransform snapshot = new PlayerTransform(Transform.Position, camera.Yaw, camera.Pitch, 
-                CharacterController.IsGrounded);
+            PlayerTransform snapshot = new PlayerTransform(Transform.Position, camera.Yaw, camera.Pitch);
             playerTransforms.Add(snapshot);
 
             if (playerTransforms.Count > MAX_STORED_TRANSFORMS)
@@ -305,53 +282,39 @@ namespace AceOfSpades.Server
 
         public void OnServerInbound()
         {
-            // Apply immediate changes
-            ItemManager.Equip(ClientInput.SelectedItem);
+            // Equip the weapon the client has equipped
+            ItemManager.Equip(ClientSnapshot.SelectedItem);
 
-            serverFlashlight = ClientInput.IsFlashlightVisible;
-
-            NetworkBullet[] clientBullets = ClientInput.BulletSnapshot.GetBullets();
+            // Queue all bullets fired client-side
+            NetworkBullet[] clientBullets = ClientSnapshot.BulletSnapshot.GetBullets();
             for (int i = 0; i < clientBullets.Length; i++)
                 bulletsToFire.Enqueue(clientBullets[i]);
-
-            currentMovementSnapshotIndex = 0;
         }
 
         public void OnServerOutbound(PlayerSnapshot snapshot)
         {
             if (snapshot.NetId != StateInfo.Id)
+            {
                 throw new Exception(
                     string.Format("PlayerSnapshot initId does not match ServerMPPlayer's netId! initId {0} != netId {1}",
                     snapshot.NetId, StateInfo.Id));
-
-            NetworkClientMovement currentlySimulatedMovement = null;
-
-            if (ClientInput.MovementSnapshot.Movements.Count > 0)
-            {
-                if (currentMovementSnapshotIndex < ClientInput.MovementSnapshot.Movements.Count - 1)
-                    currentlySimulatedMovement = ClientInput.MovementSnapshot.Movements[currentMovementSnapshotIndex];
-                else
-                    currentlySimulatedMovement = ClientInput.MovementSnapshot.Movements[ClientInput.MovementSnapshot.Movements.Count - 1];
             }
 
             snapshot.NetId = StateInfo.Id;
-            snapshot.Sequence = currentlySimulatedMovement?.Sequence ?? 0;
 
             snapshot.X = Transform.Position.X;
             snapshot.Y = Transform.Position.Y;
             snapshot.Z = Transform.Position.Z;
 
-            snapshot.IsCrouching = CharacterController.IsCrouching;
-            snapshot.IsGrounded = CharacterController.IsGrounded;
-            
-            snapshot.IsFlashlightOn = ClientInput.IsFlashlightVisible;
+            snapshot.IsCrouching = ClientSnapshot.IsCrouching; 
+            snapshot.IsFlashlightOn = ClientSnapshot.IsFlashlightVisible;
 
             if (snapshot.IsOwner)
             {
+                // Owner-only data
                 if (ItemManager.SelectedItem != null)
                 {
-                    Gun gun = ItemManager.SelectedItem as Gun;
-                    if (gun != null)
+                    if (ItemManager.SelectedItem is Gun gun)
                     {
                         snapshot.CurrentMag = (byte)gun.CurrentMag;
                         snapshot.StoredAmmo = (ushort)gun.StoredAmmo;
@@ -364,11 +327,9 @@ namespace AceOfSpades.Server
             }
             else
             {
-                if (ClientInput.MovementSnapshot.Movements.Count > 0)
-                {
-                    snapshot.CamYaw = currentlySimulatedMovement?.CameraYaw ?? 0;
-                    snapshot.CamPitch = currentlySimulatedMovement?.CameraPitch ?? 0;
-                }
+                // Replicated-only data
+                snapshot.CamYaw = ClientSnapshot.CamYaw;
+                snapshot.CamPitch = ClientSnapshot.CamPitch;
 
                 snapshot.SelectedItem = (byte)ItemManager.SelectedItemIndex;
 

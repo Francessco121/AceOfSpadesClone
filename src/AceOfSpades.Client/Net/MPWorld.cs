@@ -212,7 +212,7 @@ namespace AceOfSpades.Client.Net
             int damage, float playerDamage, float maxDist = float.MaxValue)
         {
             // Signal server that we fired a bullet at this time
-            OurPlayer.ClientInput.BulletSnapshot.EnqueueBullet(new NetworkBullet(origin, Camera.Active.Yaw, Camera.Active.Pitch));
+            OurPlayer.ClientSnapshot.BulletSnapshot.EnqueueBullet(new NetworkBullet(origin, Camera.Active.Yaw, Camera.Active.Pitch));
 
             // Simulate bullet locally if enabled
             if (DashCMD.GetCVar<bool>("cl_impacts"))

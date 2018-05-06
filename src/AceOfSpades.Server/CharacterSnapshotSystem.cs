@@ -86,7 +86,7 @@ namespace AceOfSpades.Server
             if (players.TryGetValue(entId, out player))
             {
                 // Read packet to snapshot
-                player.ClientInput.Deserialize(packet);
+                player.ClientSnapshot.Deserialize(packet);
                 // Update player
                 player.OnServerInbound();
             }
