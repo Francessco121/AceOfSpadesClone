@@ -72,8 +72,6 @@ namespace AceOfSpades.Characters
         protected Light flashlight;
 
         SimpleCamera camera;
-        Vector3 lastMoveVector;
-        float moveVecI;
 
         public Player(MasterRenderer renderer, World world, SimpleCamera camera, Vector3 position, Team team) 
             : base(position, 11, 5, 2.5f)
@@ -139,14 +137,14 @@ namespace AceOfSpades.Characters
             return camera;
         }
 
-        protected void UpdateMoveVector(Vector3 inputMove, bool tryJump, bool sprint, bool walk)
+        protected void UpdateMoveVector(Vector3 inputMove, bool tryJump, bool sprint, bool walk, float speedMultiplier = 1f)
         {
             // Update strafing properties
             IsStrafing = inputMove.X != 0;
             StrafeDir = (int)inputMove.X;
 
             // Update MoveVector
-            CharacterController.MoveVector = CalculateMoveVector(inputMove, tryJump, sprint, walk);
+            CharacterController.MoveVector = CalculateMoveVector(inputMove, tryJump, sprint, walk) * speedMultiplier;
         }
 
         protected Vector3 CalculateMoveVector(Vector3 inputMove, bool tryJump, bool sprint, bool walk,

@@ -28,7 +28,7 @@ namespace AceOfSpades.Server
         Dictionary<string, GameScreen> screens;
 
         public ServerGame()
-            : base(60)
+            : base(120)
         {
             screens = new Dictionary<string, GameScreen>();
 

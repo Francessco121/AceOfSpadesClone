@@ -60,6 +60,8 @@ namespace AceOfSpades.Server
         Queue<NetworkBullet> bulletsToFire;
         bool forceNextJump;
 
+        int currentMovementSnapshotIndex;
+
         public ServerMPPlayer(World world, Vector3 position, Team team)
              : base(null, world, new SimpleCamera(), position, team)
         {
@@ -118,9 +120,39 @@ namespace AceOfSpades.Server
         {
             if (StateInfo != null)
             {
-                IsAiming = ClientInput.IsAiming;
-                IsSprinting = CharacterController.IsMoving && CharacterController.DeltaPosition.Length > 0 && !IsAiming
-                    && !CharacterController.IsCrouching && !ClientInput.Walk && ClientInput.Sprint;
+                if (currentMovementSnapshotIndex < ClientInput.MovementSnapshot.Movements.Count - 1)
+                {
+                    NetworkClientMovement movement = ClientInput.MovementSnapshot.Movements[currentMovementSnapshotIndex];
+
+                    camera.Yaw = movement.CameraYaw;
+                    camera.Pitch = movement.CameraPitch;
+
+                    IsAiming = ClientInput.IsAiming;
+                    IsSprinting = CharacterController.IsMoving && CharacterController.DeltaPosition.Length > 0 && !IsAiming
+                        && !CharacterController.IsCrouching && !movement.Walk && movement.Sprint;
+
+                    // Move the character
+                    Vector3 move = Vector3.Zero;
+                    if (movement.MoveForward) move.Z -= 1;
+                    if (movement.MoveBackward) move.Z += 1;
+                    if (movement.MoveLeft) move.X += 1;
+                    if (movement.MoveRight) move.X -= 1;
+
+                    UpdateMoveVector(move, movement.Jump, movement.Sprint, IsWalking = movement.Walk,
+                        speedMultiplier: Math.Max(movement.Length / deltaTime, 1f));
+
+                    if (movement.Crouch)
+                        CharacterController.IsCrouching = true;
+                    else if (CharacterController.IsCrouching)
+                        CharacterController.TryUncrouch(World);
+
+                    // Decrease the movement snapshots length and move to the next one if we've
+                    // simulated it fully.
+                    movement.Length -= deltaTime;
+
+                    if (movement.Length <= 0)
+                        currentMovementSnapshotIndex++;
+                }
 
                 // Update item in hand
                 ItemManager.Update(false, false, false, false, ClientInput.Reload, deltaTime);
@@ -144,25 +176,11 @@ namespace AceOfSpades.Server
                     }
                 }
 
-                // Move the character
-                Vector3 move = Vector3.Zero;
-                if (ClientInput.MoveForward) move.Z -= 1;
-                if (ClientInput.MoveBackward) move.Z += 1;
-                if (ClientInput.MoveLeft) move.X += 1;
-                if (ClientInput.MoveRight) move.X -= 1;
-
-                UpdateMoveVector(move, ClientInput.Jump, ClientInput.Sprint, IsWalking = ClientInput.Walk);
-
                 if (forceNextJump)
                 {
                     forceNextJump = false;
                     CharacterController.MoveVector.SetY(JUMP_POWER);
                 }
-
-                if (ClientInput.Crouch)
-                    CharacterController.IsCrouching = true;
-                else if (CharacterController.IsCrouching)
-                    CharacterController.TryUncrouch(World);
 
                 if (ClientInput.DropIntel)
                     DropIntel();
@@ -291,27 +309,12 @@ namespace AceOfSpades.Server
             ItemManager.Equip(ClientInput.SelectedItem);
 
             serverFlashlight = ClientInput.IsFlashlightVisible;
-            camera.Yaw = ClientInput.CameraYaw;
-            camera.Pitch = ClientInput.CameraPitch;
 
             NetworkBullet[] clientBullets = ClientInput.BulletSnapshot.GetBullets();
             for (int i = 0; i < clientBullets.Length; i++)
                 bulletsToFire.Enqueue(clientBullets[i]);
 
-            // If the client jumped, and we have them in the air already, check to see  
-            // if (in the client's time) the jump is valid (according to our records).
-            if (ClientInput.Jump && !CharacterController.IsGrounded && ClientInput.JumpTimeDelta != ushort.MaxValue)
-            {
-                int rollbackTime = StateInfo.Owner.Stats.Ping + ClientInput.JumpTimeDelta;
-                PlayerTransform transform = RollbackTransform(Environment.TickCount - rollbackTime, true);
-                if (transform.IsGrounded)
-                {
-                    Transform.Position.Y = transform.Position.Y;
-                    CharacterController.Velocity.Y = 0;
-                    forceNextJump = true;
-                    //DashCMD.WriteLine("Applied fix jump!");
-                }
-            }
+            currentMovementSnapshotIndex = 0;
         }
 
         public void OnServerOutbound(PlayerSnapshot snapshot)
@@ -321,7 +324,18 @@ namespace AceOfSpades.Server
                     string.Format("PlayerSnapshot initId does not match ServerMPPlayer's netId! initId {0} != netId {1}",
                     snapshot.NetId, StateInfo.Id));
 
+            NetworkClientMovement currentlySimulatedMovement = null;
+
+            if (ClientInput.MovementSnapshot.Movements.Count > 0)
+            {
+                if (currentMovementSnapshotIndex < ClientInput.MovementSnapshot.Movements.Count - 1)
+                    currentlySimulatedMovement = ClientInput.MovementSnapshot.Movements[currentMovementSnapshotIndex];
+                else
+                    currentlySimulatedMovement = ClientInput.MovementSnapshot.Movements[ClientInput.MovementSnapshot.Movements.Count - 1];
+            }
+
             snapshot.NetId = StateInfo.Id;
+            snapshot.Sequence = currentlySimulatedMovement?.Sequence ?? 0;
 
             snapshot.X = Transform.Position.X;
             snapshot.Y = Transform.Position.Y;
@@ -350,8 +364,11 @@ namespace AceOfSpades.Server
             }
             else
             {
-                snapshot.CamYaw = ClientInput.CameraYaw;
-                snapshot.CamPitch = ClientInput.CameraPitch;
+                if (ClientInput.MovementSnapshot.Movements.Count > 0)
+                {
+                    snapshot.CamYaw = currentlySimulatedMovement?.CameraYaw ?? 0;
+                    snapshot.CamPitch = currentlySimulatedMovement?.CameraPitch ?? 0;
+                }
 
                 snapshot.SelectedItem = (byte)ItemManager.SelectedItemIndex;
 

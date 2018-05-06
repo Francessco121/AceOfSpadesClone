@@ -78,7 +78,17 @@ namespace AceOfSpades.Characters
                 IsMoving = MoveVector.X != 0 || MoveVector.Z != 0;
 
                 lastMoveVector = Interpolation.Lerp(lastMoveVector, MoveVector, MovementSmoothingInterp);
-                lastMoveVector = Interpolation.Lerp(lastMoveVector, MoveVectorOffset, MoveVectorOffsetFactor);
+
+                if (MoveVectorOffset != Vector3.Zero && MoveVectorOffsetFactor > 0)
+                {
+                    Vector3 targetPos = Transform.Position + lastMoveVector;
+                    Vector3 offsetTargetPos = Transform.Position + MoveVectorOffset;
+                    Vector3 newTargetPos = Interpolation.Lerp(targetPos, offsetTargetPos, MoveVectorOffsetFactor);
+
+                    float movementLength = lastMoveVector.Length;
+                    lastMoveVector = (newTargetPos - Transform.Position).Normalize() * movementLength;
+                }
+
                 if (lastMoveVector.X != 0) LastNonZeroMoveVector.SetX(Velocity.X = lastMoveVector.X);
                 if (MoveVector.Y != 0) LastNonZeroMoveVector.SetY(Velocity.Y = MoveVector.Y);
                 if (lastMoveVector.Z != 0) LastNonZeroMoveVector.SetZ(Velocity.Z = lastMoveVector.Z);

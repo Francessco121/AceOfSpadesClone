@@ -20,6 +20,12 @@ namespace AceOfSpades.Net
             set { netId.Value = value; }
         }
 
+        public ushort Sequence
+        {
+            get { return (ushort)sequence.Value; }
+            set { sequence.Value = value; }
+        }
+
         public float X
         {
             get { return (float)x.Value; }
@@ -103,6 +109,7 @@ namespace AceOfSpades.Net
         public HitFeedbackSnapshot HitFeedbackSnapshot { get; }
 
         SnapshotField netId;
+        SnapshotField sequence;
         SnapshotField x;
         SnapshotField y;
         SnapshotField z;
@@ -130,6 +137,7 @@ namespace AceOfSpades.Net
             IsOwner = isOwner;
 
             netId = AddPrimitiveField(id);
+            sequence = AddPrimitiveField<ushort>();
 
             x = AddPrimitiveField<float>();
             y = AddPrimitiveField<float>();

@@ -88,11 +88,13 @@
     <Compile Include="IO\WorldFileIO_V2.cs" />
     <Compile Include="IO\WorldFileIO_V3.cs" />
     <Compile Include="IO\WorldObjectDescription.cs" />
+    <Compile Include="Net\ClientMovementSnapshot.cs" />
     <Compile Include="Net\INetEntity.cs" />
     <Compile Include="Net\CommandPostEntitySnapshot.cs" />
     <Compile Include="Net\IntelEntitySnapshot.cs" />
     <Compile Include="Net\NetEntitySnapshot.cs" />
     <Compile Include="Net\NetEntityListSnapshot.cs" />
+    <Compile Include="Net\NetworkClientMovement.cs" />
     <Compile Include="PlayerRaycastResult.cs" />
     <Compile Include="TerrainRaycastResult.cs" />
     <Compile Include="Characters\CharacterController.cs" />

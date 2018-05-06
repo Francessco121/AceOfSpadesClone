@@ -73,11 +73,10 @@ namespace AceOfSpades.Client.Net
 
             // Setup default multiplayer cvars
             DashCMD.SetCVar("cl_impacts", false);
-            DashCMD.SetCVar("cl_interp", 0.1f);
-            DashCMD.SetCVar("cl_interp_ysnapoffset", Block.CUBE_SIZE + 1f);
-            DashCMD.SetCVar("cl_interp_ysnapoffset_i", 0.1f);
-            DashCMD.SetCVar("cl_interp_smooth", 0.125f);
-            DashCMD.SetCVar("cl_interp_rep", 20f);
+            DashCMD.SetCVar("cl_interp", 0.5f); // Client interpolation with server position
+            DashCMD.SetCVar("cl_interp_movement_smooth", 1f); // Client player movement smoothing (1f = no smoothing)
+            DashCMD.SetCVar("cl_interp_rep", 20f); // Replicated entities interpolation
+            DashCMD.SetCVar("cl_max_error_dist", 12f); // Max distance the client's position can be off from the server's
         }
 
         protected override void OnLoad(object[] args)

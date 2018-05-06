@@ -21,7 +21,9 @@ namespace AceOfSpades.Server
             get { return snapshotSystem; }
         }
 
-        const int DEFAULT_TICKRATE = 80; // Target: 30 p/s, Actual (@ 60fps): ~20 p/s
+        // Old comment for DEFAULT_TICKRATE: // Target: 30 p/s, Actual (@ 60fps): ~20 p/s
+
+        const int DEFAULT_TICKRATE = 60;
         float tickrate
         {
             get { return 1f / DashCMD.GetCVar<int>("sv_tickrate"); }
@@ -67,7 +69,7 @@ namespace AceOfSpades.Server
 
             DashCMD.SetCVar("sv_tickrate", DEFAULT_TICKRATE);
             DashCMD.SetCVar("sv_await_cl_snap", false);
-            DashCMD.SetCVar<ushort>("ag_max_cl_tickrate", 60);
+            DashCMD.SetCVar<ushort>("ag_max_cl_tickrate", 100);
             DashCMD.SetCVar("ag_cl_force_await_snap", false);
 
             //DashCMD.SetCVar("sv_tickrate", 25);
@@ -144,7 +146,7 @@ namespace AceOfSpades.Server
 
                 if (state.TimeSinceLastSend >= tickrate && gotClientSnapshot)
                 {
-                    SendSnapshotTo(state.Connection);
+                    SendSnapshotTo(state.Connection, state, deltaTime);
 
                     state.RTT_TimeSinceLastSend = 0;
                     state.MeasuringRTT = true;
@@ -161,64 +163,59 @@ namespace AceOfSpades.Server
             base.Update(deltaTime);
         }
 
-        void SendSnapshotTo(NetConnection conn)
+        void SendSnapshotTo(NetConnection conn, NetConnectionSnapshotState connState, float deltaTime)
         {
-            NetConnectionSnapshotState connState;
-            ushort epid = 0;
-            if (ConnectionStates.TryGetValue(conn, out connState))
+            WorldSnapshot worldSnapshot = connState.WorldSnapshot;
+
+            ushort epid = connState.OutboundSnapshotId;
+            connState.OutboundSnapshotId++;
+
+            connState.TimeSinceLastSend -= deltaTime;
+            connState.GotPacket = false;
+
+            connState.WorldSnapshot.MaxClientTickrate = DashCMD.GetCVar<ushort>("ag_max_cl_tickrate");
+            connState.WorldSnapshot.ForceSnapshotAwait = DashCMD.GetCVar<bool>("ag_cl_force_await_snap");
+
+            NetOutboundPacket packet = new NetOutboundPacket(NetDeliveryMethod.Unreliable);
+            packet.SendImmediately = true;
+            int size = packet.Length;
+            packet.Write((byte)CustomPacketType.Snapshot);
+            packet.Write(epid);
+            int _packetheader = packet.Length - size; size = packet.Length;
+
+            // Write snapshot system data
+            snapshotSystem.OnOutbound(packet, conn);
+            int _acks = packet.Length - size; size = packet.Length;
+
+            // Write players
+            charSnapshotSystem.OnServerOutbound(packet, connState);
+
+            // Invoke event
+            if (OnWorldSnapshotOutbound != null)
+                OnWorldSnapshotOutbound(this, worldSnapshot);
+
+            // Serialize snapshot
+            NetBuffer buffer = new NetBuffer();
+            worldSnapshot.Serialize(buffer);
+
+            packet.Write((ushort)buffer.Length);
+            packet.WriteBytes(buffer.Data, 0, buffer.Length);
+
+
+            int _playerdata = packet.Length - size; size = packet.Length;
+            int _terraindata = connState.WorldSnapshot.TerrainSnapshot.LastByteSize;
+            _playerdata -= _terraindata;
+
+            // Send packet
+            conn.SendPacket(packet);
+
+            if (connState != null)
             {
-                WorldSnapshot worldSnapshot = connState.WorldSnapshot;
-
-                epid = connState.OutboundSnapshotId;
-                connState.OutboundSnapshotId++;
-
-                connState.TimeSinceLastSend = 0;
-                connState.GotPacket = false;
-
-                connState.WorldSnapshot.MaxClientTickrate = DashCMD.GetCVar<ushort>("ag_max_cl_tickrate");
-                connState.WorldSnapshot.ForceSnapshotAwait = DashCMD.GetCVar<bool>("ag_cl_force_await_snap");
-
-                NetOutboundPacket packet = new NetOutboundPacket(NetDeliveryMethod.Unreliable);
-                packet.SendImmediately = true;
-                int size = packet.Length;
-                packet.Write((byte)CustomPacketType.Snapshot);
-                packet.Write(epid);
-                int _packetheader = packet.Length - size; size = packet.Length;
-
-                // Write snapshot system data
-                snapshotSystem.OnOutbound(packet, conn);
-                int _acks = packet.Length - size; size = packet.Length;
-
-                // Write players
-                charSnapshotSystem.OnServerOutbound(packet, connState);
-
-                // Invoke event
-                if (OnWorldSnapshotOutbound != null)
-                    OnWorldSnapshotOutbound(this, worldSnapshot);
-
-                // Serialize snapshot
-                NetBuffer buffer = new NetBuffer();
-                worldSnapshot.Serialize(buffer);
-
-                packet.Write((ushort)buffer.Length);
-                packet.WriteBytes(buffer.Data, 0, buffer.Length);
-
-
-                int _playerdata = packet.Length - size; size = packet.Length;
-                int _terraindata = connState.WorldSnapshot.TerrainSnapshot.LastByteSize;
-                _playerdata -= _terraindata;
-
-                // Send packet
-                conn.SendPacket(packet);
-
-                if (connState != null)
-                {
-                    SnapshotStats stats = connState.Stats;
-                    stats.PacketHeader = _packetheader;
-                    stats.Acks = _acks;
-                    stats.PlayerData = _playerdata;
-                    stats.TerrainData = _terraindata;
-                }
+                SnapshotStats stats = connState.Stats;
+                stats.PacketHeader = _packetheader;
+                stats.Acks = _acks;
+                stats.PlayerData = _playerdata;
+                stats.TerrainData = _terraindata;
             }
         }
     }

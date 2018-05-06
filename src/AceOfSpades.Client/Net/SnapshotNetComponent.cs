@@ -25,7 +25,9 @@ namespace AceOfSpades.Client.Net
             get { return rtt; }
         }
 
-        const int DEFAULT_TICKRATE = 90; // Target: 50 p/s, Actual (@ 60fps): ~30 p/s
+        // Old comment for DEFAULT_TICKRATE: // Target: 50 p/s, Actual (@ 60fps): ~30 p/s
+
+        const int DEFAULT_TICKRATE = 80;
         float tickrate
         {
             get
@@ -181,7 +183,7 @@ namespace AceOfSpades.Client.Net
 
             if (syncTime <= 0 && gotServerSnapshot || syncTime <= -1)
             {
-                syncTime = tickrate;
+                syncTime += tickrate;
                 gotPacket = false;
 
                 // Create and send client state snapshot

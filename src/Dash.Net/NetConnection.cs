@@ -533,10 +533,14 @@ namespace Dash.Net
                 && physicalPacketsSentInLastSecond < PacketSendRate)
                 SendChunk();
 
+            // TODO: Fix overflow warning. The warning is currently incorrect as it assumes all packets are sent in chunks.
+            // Game packets sent on specific tickrates disable chunking so that nothing delays the packets further, which can
+            // sometimes allow more packets to be sent than our "send rate" when combined with normal packets that are chunked.
+
             // Log warning if this connection gets overflowed
-            if (physicalPacketsSentInLastSecond >= PacketSendRate)
-                NetLogger.LogWarning("[OVERFLOW:{2}] Packets Sent Last Second: {0}, SendRate: {1}",
-                    physicalPacketsSentInLastSecond, PacketSendRate, EndPoint);
+            //if (physicalPacketsSentInLastSecond >= PacketSendRate)
+            //    NetLogger.LogWarning("[OVERFLOW:{2}] Packets Sent Last Second: {0}, SendRate: {1}",
+            //        physicalPacketsSentInLastSecond, PacketSendRate, EndPoint);
 
             // Reset packets per second calculation
             if (now - packetPerSecondLastReset >= 1000)

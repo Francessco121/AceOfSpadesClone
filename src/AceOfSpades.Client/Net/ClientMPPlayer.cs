@@ -7,6 +7,7 @@ using Dash.Engine.Diagnostics;
 using Dash.Engine.Graphics;
 using Dash.Engine.Physics;
 using System;
+using System.Collections.Generic;
 
 /* ClientMPPlayer.cs
  * Ethan Lafrenais
@@ -16,11 +17,21 @@ namespace AceOfSpades.Client.Net
 {
     public class ClientMPPlayer : ClientPlayer
     {
+        class PositionSnapshot
+        {
+            public NetworkClientMovement Movement { get; }
+            public Vector3 ExpectedPosition { get; }
+
+            public PositionSnapshot(NetworkClientMovement movement, Vector3 expectedPosition)
+            {
+                Movement = movement;
+                ExpectedPosition = expectedPosition;
+            }
+        }
+
         public ClientInputSnapshot ClientInput { get; private set; }
-        MovementState lastMovement;
 
         Vector3 lastServerPos;
-        Vector3 predictedDir;
 
         FloatAnim yawAnim;
         FloatAnim pitchAnim;
@@ -28,11 +39,12 @@ namespace AceOfSpades.Client.Net
         SimpleCamera camera;
         CameraFX camfx;
 
-        bool serverGrounded;
-
-        float snapshotRTT;
-        Vector3 expectedServerPos;
         FakeServerPlayer serverTestPlayer;
+
+        ushort latestServerClientSequence;
+        ushort currentSequence;
+
+        Queue<PositionSnapshot> positionSnapshots;
 
         public ClientMPPlayer(MasterRenderer renderer, World world, Camera camera, Vector3 position, Team team)
             : base(renderer, world, camera, position, team)
@@ -43,6 +55,8 @@ namespace AceOfSpades.Client.Net
             yawAnim = new FloatAnim();
             pitchAnim = new FloatAnim();
 
+            positionSnapshots = new Queue<PositionSnapshot>();
+
             // Setup ClientInput Snapshot
             AOSClient client = AOSClient.Instance;
             SnapshotNetComponent snc = client.GetComponent<SnapshotNetComponent>();
@@ -50,7 +64,6 @@ namespace AceOfSpades.Client.Net
             ClientInput = new ClientInputSnapshot(ss, client.ServerConnection);
 
             lastServerPos = position;
-            expectedServerPos = position;
 
             Camera.Active.FOV = Camera.Active.DefaultFOV;
             Camera.Active.FPSMouseSensitivity = Camera.Active.DefaultFPSMouseSensitivity;
@@ -69,7 +82,6 @@ namespace AceOfSpades.Client.Net
 
         public override void OnNetworkInstantiated(NetCreatableInfo stateInfo)
         {
-            lastMovement = new MovementState();
             serverTestPlayer = new FakeServerPlayer(Transform.Position, Size, CharacterController.Mass);
 
             base.OnNetworkInstantiated(stateInfo);
@@ -125,10 +137,8 @@ namespace AceOfSpades.Client.Net
                     if (Input.GetControl("MoveRight")) move.X += 1;
                 }
 
-                CharacterController.MovementSmoothingInterp = DashCMD.GetCVar<float>("cl_interp_smooth");
+                CharacterController.MovementSmoothingInterp = DashCMD.GetCVar<float>("cl_interp_movement_smooth");
                 UpdateMoveVector(move, inputJump, inputSprint, IsWalking = inputWalk);
-
-                bool actuallyJumped = inputJump && CharacterController.IsGrounded;
 
                 if (inputCrouch)
                     CharacterController.IsCrouching = true;
@@ -157,83 +167,120 @@ namespace AceOfSpades.Client.Net
                     : Camera.Active.Position;
                 flashlight.Direction = -Camera.Active.LookVector;
 
-                // Interpolate position from the client position vs the server position
-                float interp = DashCMD.GetCVar<float>("cl_interp");
-                float interp_ysnapoffset = DashCMD.GetCVar<float>("cl_interp_ysnapoffset");
-                float interp_ysnapoffset_i = DashCMD.GetCVar<float>("cl_interp_ysnapoffset_i");
-
-                if (!predictedDir.IsNan())
+                // Determine if we've drifted to far from the server based on our predictions and server position
+                bool forcedPosition = false;
+                if (positionSnapshots.Count > 0 && positionSnapshots.Peek().Movement.Sequence <= latestServerClientSequence)
                 {
-                    // Modify the angle we are moving at to be more like the
-                    // direction the server will move us at.
-                    // This very smoothly corrects our ending position.
-                    CharacterController.MoveVectorOffset = new Vector3(predictedDir.X, 0, predictedDir.Z);
+                    PositionSnapshot predictedSnapshot = null;
+                    while (positionSnapshots.Count > 0
+                        && (predictedSnapshot == null || predictedSnapshot.Movement.Sequence != latestServerClientSequence))
+                    {
+                        predictedSnapshot = positionSnapshots.Dequeue();
+                    }
+
+                    if (predictedSnapshot != null)
+                    {
+                        float xDiff = Math.Abs(predictedSnapshot.ExpectedPosition.X - lastServerPos.X);
+                        float yDiff = Math.Abs(predictedSnapshot.ExpectedPosition.Y - lastServerPos.Y);
+                        float zDiff = Math.Abs(predictedSnapshot.ExpectedPosition.Z - lastServerPos.Z);
+
+                        float distance = (new Vector3(xDiff, yDiff, zDiff)).Length;
+
+                        float maxErrorDistance = DashCMD.GetCVar<float>("cl_max_error_dist");
+
+                        if (distance > maxErrorDistance)
+                        {
+                            forcedPosition = true;
+
+                            Transform.Position = lastServerPos;
+                        }
+                    }
+                }
+
+                if (!forcedPosition && move != Vector3.Zero)
+                {
+                    Vector3 interpolation = new Vector3(lastServerPos.X - Transform.Position.X, 0, lastServerPos.Z - Transform.Position.Z);
+
+                    float interp = DashCMD.GetCVar<float>("cl_interp");
+
+                    CharacterController.MoveVectorOffset = interpolation;
                     CharacterController.MoveVectorOffsetFactor = interp;
                 }
                 else
+                {
+                    CharacterController.MoveVectorOffset = Vector3.Zero;
                     CharacterController.MoveVectorOffsetFactor = 0;
-
-                // Slowly correct ourselves
-                Transform.Position.X = Interpolation.Linear(Transform.Position.X, expectedServerPos.X, interp);
-                Transform.Position.Y = Interpolation.Linear(Transform.Position.Y, expectedServerPos.Y, 
-                    CharacterController.IsGrounded ? interp : interp / 2f);
-                Transform.Position.Z = Interpolation.Linear(Transform.Position.Z, expectedServerPos.Z, interp);
-
-                // If our synchronization drags us onto a block,
-                // compensate by snapping to the server y coordinate.
-                if (serverGrounded && 
-                    ((!CharacterController.IsMoving && Math.Abs(expectedServerPos.Y - Transform.Position.Y) >= interp_ysnapoffset_i) 
-                    || (CharacterController.IsMoving && Math.Abs(expectedServerPos.Y - Transform.Position.Y) >= interp_ysnapoffset)))
-                    Transform.Position.Y = expectedServerPos.Y;
+                }
 
                 // Update the input snapshot
-                ClientInput.CameraPitch = camera.Pitch;
-                ClientInput.CameraYaw = camera.Yaw;
-
                 ClientInput.SelectedItem = (byte)ItemManager.SelectedItemIndex;
                 ClientInput.IsFlashlightVisible = flashlight.Visible;
-
-                ClientInput.Crouch = inputCrouch;
-                ClientInput.Walk = inputWalk;
-                ClientInput.Sprint = inputSprint;
-                ClientInput.Jump = actuallyJumped || ClientInput.Jump;
-                if (actuallyJumped)
-                    ClientInput.JumpTimeTicks = Environment.TickCount;
-
-                ClientInput.MoveForward = move.Z == -1 || ClientInput.MoveForward;
-                ClientInput.MoveBackward = move.Z == 1 || ClientInput.MoveBackward;
-                ClientInput.MoveLeft = move.X == 1 || ClientInput.MoveLeft;
-                ClientInput.MoveRight = move.X == -1 || ClientInput.MoveRight;
 
                 ClientInput.Reload = inputReload || ClientInput.Reload;
                 ClientInput.IsAiming = IsAiming;
                 ClientInput.DropIntel = inputDropIntel || ClientInput.DropIntel;
+
+                SnapshotMovement(new NetworkClientMovement
+                {
+                    MoveForward = move.Z == -1,
+                    MoveBackward = move.Z == 1,
+                    MoveLeft = move.X == 1,
+                    MoveRight = move.X == -1,
+                    Crouch = inputCrouch,
+                    Walk = inputWalk,
+                    Sprint = inputSprint,
+                    Jump = inputJump,
+                    CameraPitch = camera.Pitch,
+                    CameraYaw = camera.Yaw,
+                    Sequence = currentSequence++
+                }, deltaTime);
             }
 
             base.Update(deltaTime);
         }
 
-        void PredictServer()
+        void SnapshotMovement(NetworkClientMovement movement, float deltaTime)
+        {
+            NetworkClientMovement actuallyAddedMovement = ClientInput.MovementSnapshot.EnqueueMovement(movement, deltaTime);
+
+            // Movements are always buffered so that the latest isn't actually sent.
+            // The actuallyAddedMovement variable contains the previously enqueued movement,
+            // which now correctly has the Length property set.
+            if (actuallyAddedMovement != null)
+            {
+                positionSnapshots.Enqueue(new PositionSnapshot(movement, PredictServer(actuallyAddedMovement)));
+
+                // Ensure the queue doesn't grow insanely large since it's only read from
+                // when the server responds
+                if (positionSnapshots.Count > 100)
+                {
+                    while (positionSnapshots.Count > 100)
+                        positionSnapshots.Dequeue();
+                }
+            }
+        }
+
+        Vector3 PredictServer(NetworkClientMovement movement)
         {
             Vector3 move = Vector3.Zero;
-            if (lastMovement.MoveForward) move.Z -= 1;
-            if (lastMovement.MoveBackward) move.Z += 1;
-            if (lastMovement.MoveLeft) move.X += 1;
-            if (lastMovement.MoveRight) move.X -= 1;
+            if (movement.MoveForward) move.Z -= 1;
+            if (movement.MoveBackward) move.Z += 1;
+            if (movement.MoveLeft) move.X += 1;
+            if (movement.MoveRight) move.X -= 1;
 
             // Predict the direction
-            float speed = GetSpeed(lastMovement.Sprint, lastMovement.Walk || lastMovement.Aiming, lastMovement.Crouch);
-            predictedDir = CalculateMoveVector(move, lastMovement.Jump, false, false, speed);
+            float speed = GetSpeed(movement.Sprint, movement.Walk || ClientInput.IsAiming, movement.Crouch);
+            Vector3 predictedDir = CalculateMoveVector(move, movement.Jump, false, false, speed);
 
             // Simulate one physics step for our "fake" server player
             // Time to simulate is equal to half the snapshot round-trip time
             serverTestPlayer.PhysicsBody.Size = Size;
-            serverTestPlayer.Transform.Position = lastServerPos;
+            serverTestPlayer.Transform.Position = Transform.Position;
             serverTestPlayer.PhysicsBody.Velocity = predictedDir;
-            World.Physics.SimulateSingle(serverTestPlayer.PhysicsBody, snapshotRTT / 2f);
+            World.Physics.SimulateSingle(serverTestPlayer.PhysicsBody, movement.Length);
 
-            // Update the predicted position
-            expectedServerPos = serverTestPlayer.Transform.Position;
+            // return the predicted position
+            return serverTestPlayer.Transform.Position;
         }
 
         protected override void Draw()
@@ -260,6 +307,8 @@ namespace AceOfSpades.Client.Net
 
         public override void OnClientInbound(PlayerSnapshot snapshot)
         {
+            latestServerClientSequence = snapshot.Sequence;
+
             if (ItemManager.SelectedItem != null)
             {
                 Gun gun = ItemManager.SelectedItem as Gun;
@@ -271,7 +320,7 @@ namespace AceOfSpades.Client.Net
             }
 
             lastServerPos = new Vector3(snapshot.X, snapshot.Y, snapshot.Z);
-            serverGrounded = snapshot.IsGrounded;
+
             Health = snapshot.Health;
             NumBlocks = snapshot.NumBlocks;
             NumGrenades = snapshot.NumGrenades;
@@ -286,19 +335,8 @@ namespace AceOfSpades.Client.Net
                 camfx.ShakeCamera(0.2f, 0.05f);
         }
 
-        public void OnClientOutbound(float rtt)
-        {
-            // Update our copy of the snapshot round-trip time
-            snapshotRTT = rtt;
-        }
+        public void OnClientOutbound(float rtt) { }
 
-        public void OnPostClientOutbound()
-        {
-            // Retreive the movement state we just sent to the server
-            lastMovement.FromByteFlag(ClientInput.GetMovementFlag(), ClientInput.IsAiming);
-            // Predict where the server will move us by the time
-            // we get the next player snapshot
-            PredictServer();
-        }
+        public void OnPostClientOutbound() { }
     }
 }
