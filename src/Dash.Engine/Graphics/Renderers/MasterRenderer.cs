@@ -58,7 +58,7 @@ namespace Dash.Engine.Graphics
         public static MasterRenderer Instance { get; private set; }
         public static float GLVersion { get; private set; }
 
-        public const int MAX_LIGHTS = 128; // Ensure this is changed in the shaders as well
+        public const int MAX_LIGHTS = 64; // Ensure this is changed in the shaders as well
 
         public GraphicsOptions GFXSettings;
 

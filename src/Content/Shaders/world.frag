@@ -1,6 +1,6 @@
 #version 400 core
 
-#define MAX_LIGHTS 128
+#define MAX_LIGHTS 64
 #define FOG_LOW 0
 #define FOG_MED 1
 #define FOG_HIGH 2
