@@ -1,4 +1,4 @@
-﻿#version 400 core
+#version 400 core
 
 /* 	File: postProcess.frag
 	Author: Ethan Lafrenais

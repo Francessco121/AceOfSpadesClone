@@ -1,4 +1,4 @@
-﻿#version 400
+#version 400
 //#define PI 3.1415926535897932384626433832795
 
 /* 	File: sky.frag

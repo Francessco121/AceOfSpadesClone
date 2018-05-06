@@ -1,4 +1,4 @@
-﻿#version 400 core
+#version 400 core
 
 /* 	File: sky.vert
 	Author: Ethan Lafrenais
