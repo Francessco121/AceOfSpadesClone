@@ -18,6 +18,7 @@ namespace Dash.Net
         {
             public EndPoint Sender;
             public byte[] Buffer;
+            public int BytesReceived;
 
             public PacketState(IPEndPoint sender, byte[] buffer)
             {
@@ -120,6 +121,18 @@ namespace Dash.Net
             }
         }
 
+        class DelayedInboundPacket
+        {
+            public PacketState Packet { get; }
+            public int QueueAfter { get; }
+
+            public DelayedInboundPacket(PacketState packet, int queueAfter)
+            {
+                Packet = packet;
+                QueueAfter = queueAfter;
+            }
+        }
+
         public const int MAX_UDP_PACKET_SIZE = 65507;
 
         public bool IsRunning { get; private set; }
@@ -145,6 +158,7 @@ namespace Dash.Net
         Random packetLossRandom;
 
         ConcurrentQueue<NetInboundPacket> receivedPackets;
+        ConcurrentQueue<DelayedInboundPacket> delayedReceivedPackets;
 
         ushort nextPacketId;
 
@@ -156,6 +170,7 @@ namespace Dash.Net
         {
             this.config = config;
             receivedPackets = new ConcurrentQueue<NetInboundPacket>();
+            delayedReceivedPackets = new ConcurrentQueue<DelayedInboundPacket>();
             ignoredConnections = new ConcurrentDictionary<IPEndPoint, IgnoredConnection>();
             trackedConnections = new ConcurrentDictionary<IPEndPoint, TrackedConnection>();
             lastIgnoreLengths = new ConcurrentDictionary<IPEndPoint, int>();
@@ -378,13 +393,19 @@ namespace Dash.Net
                     //    ref state.Sender, PacketReceived, state);
 
                     //NetLogger.LogImportant("Awaiting data from {0}...", state.Sender);
-                    int br = socket.ReceiveFrom(state.Buffer, 0, state.Buffer.Length, SocketFlags.None, ref state.Sender);
+                    state.BytesReceived = socket.ReceiveFrom(state.Buffer, 0, state.Buffer.Length, SocketFlags.None, ref state.Sender);
                     //byte[] data = socket.Receive(ref state.Sender);
                     //state.Buffer = data;
 
                     //NetLogger.LogVerbose("Got {0} byte packet from {1}", br, state.Sender);
 
-                    PacketReceived(state, br);
+                    if (!config.SimulatePacketLoss || packetLossRandom.NextDouble() <= 1f - config.SimulatedPacketLossChance)
+                    {
+                        if (config.SimulateLatency)
+                            delayedReceivedPackets.Enqueue(new DelayedInboundPacket(state, NetTime.Now + config.SimulatedLatencyAmount));
+                        else
+                            PacketReceived(state);
+                    }
                 }
                 catch (SocketException e)
                 {
@@ -392,6 +413,21 @@ namespace Dash.Net
                     {
                         NetLogger.LogError("SocketErrorCode: {0}", e.SocketErrorCode.ToString());
                         NetLogger.LogError(e);
+                    }
+                }
+            }
+
+            if (delayedReceivedPackets.Count > 0)
+            {
+                DelayedInboundPacket delayedPacket;
+                while (delayedReceivedPackets.Count > 0 && delayedReceivedPackets.TryPeek(out delayedPacket))
+                {
+                    if (delayedPacket.QueueAfter > NetTime.Now)
+                        break;
+
+                    if (delayedReceivedPackets.TryDequeue(out delayedPacket))
+                    {
+                        PacketReceived(delayedPacket.Packet);
                     }
                 }
             }
@@ -451,11 +487,13 @@ namespace Dash.Net
             ProcessInboundRemotes();
 
             foreach (NetConnection conn in Connections.Values)
+            {
                 if (conn.MTUEventNeedsCall)
                 {
                     conn.MTUEventNeedsCall = false;
                     conn.FireMTUEvent();
                 }
+            }
         }
 
         //void PacketReceived(IAsyncResult ar)
@@ -467,9 +505,9 @@ namespace Dash.Net
         //    PacketReceived(state, bytesReceived);
         //}
 
-        void PacketReceived(PacketState state, int bytesReceived)
+        void PacketReceived(PacketState state)
         {
-            if (bytesReceived == 0)
+            if (state.BytesReceived == 0)
                 return;
 
             IPEndPoint sender = (IPEndPoint)state.Sender;
@@ -477,11 +515,8 @@ namespace Dash.Net
             if (ignoredConnections.Count > 0 && ignoredConnections.ContainsKey(sender))
                 return;
 
-            if (config.SimulatePacketLoss && packetLossRandom.NextDouble() > 1f - config.SimulatedPacketLossChance)
-                return;
-
-            byte[] data = new byte[bytesReceived];
-            Buffer.BlockCopy(state.Buffer, 0, data, 0, bytesReceived);
+            byte[] data = new byte[state.BytesReceived];
+            Buffer.BlockCopy(state.Buffer, 0, data, 0, state.BytesReceived);
 
             // Handle packet
             PacketReceived(data, sender);

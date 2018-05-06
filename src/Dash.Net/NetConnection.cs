@@ -467,8 +467,7 @@ namespace Dash.Net
         internal void ReceivedPingResponse()
         {
             // Reset the timer
-            lastPingResponse = config.SimulateLatency
-                ? NetTime.Now + config.SimulatedLatencyAmount : NetTime.Now;
+            lastPingResponse = NetTime.Now;
             int ping = lastPingResponse - lastPingRequest;
             Stats.Ping = ping;
 
@@ -484,9 +483,6 @@ namespace Dash.Net
         {
             if (ignorePing)
                 lastPingResponse = now;
-
-            if (config.SimulateLatency)
-                now -= config.SimulatedLatencyAmount;
 
             // Check if any reliable non-ordered packet is needed to be resent
             foreach (ReliablePacket packet in reliableOutboundPacketQueue.Values)
