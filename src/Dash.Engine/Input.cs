@@ -242,12 +242,12 @@ namespace Dash.Engine
                 }
                 else
                 {
-                    if (!isCursorLocked)
+                    /*if (!isCursorLocked)
                     {
                         CursorDeltaX = ms.X - lms.X;
                         CursorDeltaY = ms.Y - lms.Y;
                     }
-                    else
+                    else*/
                     {
                         CursorDeltaX = ms.X - (window.Width / 2);
                         CursorDeltaY = ms.Y - (window.Height / 2);
