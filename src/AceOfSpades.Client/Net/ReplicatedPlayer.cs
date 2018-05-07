@@ -31,6 +31,7 @@ namespace AceOfSpades.Client.Net
 
             // This is fully server controlled
             ItemManager.DontUpdateItems = true;
+            ItemManager.IsReplicated = true;
             CharacterController.IsEnabled = false;
 
             CreateStarterBackpack();
@@ -40,9 +41,6 @@ namespace AceOfSpades.Client.Net
         {
             if (StateInfo != null)
             {
-                // Update the item manager
-                ItemManager.UpdateReplicated(deltaTime);
-
                 // Update viewbob
                 Viewbob.UpdateReplicated(deltaTime);
 
@@ -65,6 +63,9 @@ namespace AceOfSpades.Client.Net
                 // Update flashlight
                 flashlight.Position = camera.Position;
                 flashlight.Direction = -camera.LookVector;
+
+                // Update the item manager
+                ItemManager.UpdateReplicated(deltaTime);
             }
 
             base.Update(deltaTime);

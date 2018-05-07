@@ -34,6 +34,9 @@ namespace AceOfSpades
 
         protected int? rollbackTime { get; private set; }
 
+        List<WorldAudioSource> audioSources = new List<WorldAudioSource>();
+        List<WorldAudioSource> audioSourcesToRemove = new List<WorldAudioSource>();
+
         public World()
         {
             PhysicsEngine.GlobalGravity = new Vector3(0, -9.81f * 8, 0);
@@ -94,6 +97,11 @@ namespace AceOfSpades
         public abstract void Explode(Explosion explosion);
         public virtual void BulletFired(Gun gun) { }
 
+        public void PlayWorldAudio(WorldAudioSource source)
+        {
+            audioSources.Add(source);
+        }
+
         public PlayerRaycastResult RaycastPlayer(Vector3 origin, Player player, float maxDist = 2000f)
         {
             Vector3 dir = (player.Transform.Position - origin).Normalize();
@@ -145,6 +153,20 @@ namespace AceOfSpades
 
             melonsToRemove.Clear();
 
+            foreach (WorldAudioSource source in audioSources)
+            {
+                if (source.IsDone())
+                    audioSourcesToRemove.Add(source);
+            }
+
+            foreach (WorldAudioSource source in audioSourcesToRemove)
+            {
+                audioSources.Remove(source);
+                source.Dispose();
+            }
+
+            audioSourcesToRemove.Clear();
+
             if (Terrain != null)
             {
                 if (Camera.Active != null)
@@ -167,6 +189,14 @@ namespace AceOfSpades
                 // Clean up LOH
                 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
                 GC.Collect();
+            }
+
+            if (audioSources.Count > 0)
+            {
+                foreach (WorldAudioSource source in audioSources)
+                    source.Dispose();
+
+                audioSources.Clear();
             }
 
             base.Dispose();

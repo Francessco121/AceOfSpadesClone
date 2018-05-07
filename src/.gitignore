@@ -3,6 +3,9 @@
 # Keep default world
 !default.aosw
 
+# Sounds
+*.wav
+
 # Binaries
 *.exe
 *.dll

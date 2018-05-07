@@ -11,6 +11,10 @@ I plan to update this repository with more details on how I made this clone, and
 ### Commit History
 Unforunately, I lost the entire commit history uploading to GitHub. I had to create a new repository since one of the earlier commits contained files over 100mb (which GitHub does not allow). :(
 
+## Content Files
+
+### Audio
+Due to licensing issues, none of the game's sound files will be included in this repository. The game however will continue to function without sound.
 
 ## Setting Up A Development Environment
 

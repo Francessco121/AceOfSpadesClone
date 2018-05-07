@@ -264,6 +264,8 @@ namespace Dash.Engine.Audio
             // Generate source buffer
             SourceId = AL.GenSource();
 
+            AL.Utils.CheckError();
+
             // Setup source
             AL.Source(SourceId, ALSourcei.Buffer, buffer.BufferId);
 
@@ -306,6 +308,8 @@ namespace Dash.Engine.Audio
         public void Dispose()
         {
             AL.DeleteSource(SourceId);
+
+            AL.Utils.CheckError();
         }
     }
 }

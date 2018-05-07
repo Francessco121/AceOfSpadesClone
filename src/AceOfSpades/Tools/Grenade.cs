@@ -1,6 +1,7 @@
 ﻿using AceOfSpades.Graphics;
 using AceOfSpades.Net;
 using Dash.Engine;
+using Dash.Engine.Audio;
 using Dash.Engine.Diagnostics;
 using Dash.Engine.Graphics;
 
@@ -12,11 +13,22 @@ namespace AceOfSpades.Tools
 {
     public class Grenade : Weapon
     {
+        readonly AudioSource throwAudioSource;
+
         public Grenade(ItemManager itemManager, MasterRenderer renderer) 
             : base(renderer, itemManager, ItemType.Grenade)
         {
             ModelOffset = new Vector3(-3.15f, -3f, 3);
             LoadModel("Models/grenade.aosm");
+
+            if (!GlobalNetwork.IsServer)
+            {
+                if (!itemManager.IsReplicated)
+                {
+                    throwAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Throw.wav"));
+                    throwAudioSource.IsSourceRelative = true;
+                }
+            }
         }
 
         protected override ItemConfig InitializeConfig()
@@ -57,6 +69,8 @@ namespace AceOfSpades.Tools
 
                 if (!GlobalNetwork.IsConnected)
                     OwnerPlayer.NumGrenades--;
+
+                throwAudioSource?.Play();
             }
         }
 
@@ -64,6 +78,16 @@ namespace AceOfSpades.Tools
         {
             if (OwnerPlayer.NumGrenades > 0)
                 base.Draw();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            if (!IsDisposed)
+            {
+                throwAudioSource?.Dispose();
+            }
         }
     }
 }

@@ -25,5 +25,8 @@ namespace AceOfSpades.Tools
         public float HorizontalRecoil = 0.3f;
 
         public float ModelKickback = 1;
+
+        public GunAudioConfig PrimaryFireAudio;
+        public GunAudioConfig ReloadAudio;
     }
 }

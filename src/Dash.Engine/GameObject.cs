@@ -15,9 +15,10 @@ namespace Dash.Engine
         public bool IsEnabled = true;
         public bool IsDrawable = true;
 
+        protected bool IsDisposed { get; private set; }
+
         InheritanceServiceContainer componentContainer;
         List<Component> components;
-        bool isDisposed;
 
         public GameObject(Vector3 position)
             : this()
@@ -199,7 +200,7 @@ namespace Dash.Engine
 
         public virtual void Dispose()
         {
-            if (!isDisposed)
+            if (!IsDisposed)
             {
                 // Dispose of each component
                 foreach (Component c in components)
@@ -209,7 +210,7 @@ namespace Dash.Engine
                 if (Scene != null)
                     Scene.RemoveGameObject(this);
 
-                isDisposed = true;
+                IsDisposed = true;
             }
         }
     }
