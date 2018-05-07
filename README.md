@@ -2,40 +2,20 @@
 By Ethan Lafrenais
 
 
-This repository contains my final senior year project for my highschool programming course. My goal was to recreate as much of the game [Ace of Spades Classic](https://www.buildandshoot.com/) as possible.
+This repository contains my final senior year project for my highschool programming course. My goal was to recreate as much of the game [Ace of Spades Classic](https://www.buildandshoot.com/) as possible. 
 
-It's worth mentioning that I did use some textures and recreated some models from the [OpenSpades project](https://github.com/yvt/openspades).
+All commits after commit [6f5079](https://github.com/Francessco121/AceOfSpadesClone/commit/6f5079ea222730ec6bd5b5ce0b12c41efb5979f2) are additions and fixes I've made to the project after finishing highschool.
 
 I plan to update this repository with more details on how I made this clone, and the technologies that went into it! But for now, please [see the AoS page on my website](https://francessco.us/projects/ace-of-spades-clone) for more information.
 
-### Commit History
-Unforunately, I lost the entire commit history uploading to GitHub. I had to create a new repository since one of the earlier commits contained files over 100mb (which GitHub does not allow). :(
+## Content Notice
 
-## Content Files
+### Textures
+Some textures in this repository are directly from the [OpenSpades project](https://github.com/yvt/openspades). I will remove these files from the repository if requested by the OpenSpades team. A [list of all files from OpenSpades can be found here](./src/Content/Textures/Gui/README.md).
 
 ### Audio
 Due to licensing issues, none of the game's sound files will be included in this repository. The game however will continue to function without sound.
 
-## Setting Up A Development Environment
+## Documentation
 
-### Prerequisites
-- **Windows 10 (ideally)** - The game is written in the .NET Framework, which can only be ran natively on Windows. The MSBuild targets used by the projects have only been tested with Windows 10. Older versions of Windows may work and other operating systems using Mono may also work, but neither of these are tested.
-- **OpenGL 4.x** - A minimum version of OpenGL 4.0 is required to run.
-
-### Libraries
-
-The following is a list of library builds that should be distributed with a build of the game. These need to be placed under `src/Natives/<32|64>/windows/library.dll`.
-
-#### GLFW
-A [GLFW](http://www.glfw.org/) 3.x version of at least v3.1.2 is needed to run the game.
-
-##### Windows Example
-A compiled DLL of GLFW should be placed at `src/Natives/32/windows/glfw3.dll`.
-
-### Error Handler
-Release client builds require a build of the game's error handler. Compile either `src/ErrorHandler` or `src/Dash.ErrorHandler` and place the resulting `ErrorHandler.exe` in the `src` folder at `src/ErrorHandler.exe`.
-
-### Tools
-
-#### Angel Code Font Tool
-Fonts are loaded into the game from the [Angel Code Bitmap Font format](http://www.angelcode.com/products/bmfont/). It is recommened to use [Hiero from the libGDX team](https://github.com/libgdx/libgdx/wiki/Hiero) for creating fonts for the game.
+All of the documentation for how the game works and development can be found under [the /docs folder](./docs/README.md).
