@@ -32,6 +32,7 @@ namespace AceOfSpades.Server
         protected AOSServer Server { get; private set; }
         protected Dictionary<NetConnection, ServerMPPlayer> Players { get; }
         protected NetPlayerComponent NetPlayerComponent { get; private set; }
+        protected bool AllowMelonLaunchers { get; set; } = true;
 
         protected ObjectNetComponent objectComponent { get; private set; }
         ConcurrentDictionary<NetConnection, RespawnToken> respawns;
@@ -49,6 +50,13 @@ namespace AceOfSpades.Server
             ServerMPPlayer assistant, NetworkPlayer assistantNetPlayer,
             ServerMPPlayer killed, NetworkPlayer killedNetPlayer, string item)
         {
+            if (killer != null)
+                HandleKillStreak(killer, killerNetPlayer, 1);
+
+            if (assistant != null)
+                HandleKillStreak(assistant, assistantNetPlayer, 0.5f);
+
+            killed.KillStreak = 0;
             DespawnPlayer(killed);
         }
         
@@ -214,6 +222,24 @@ namespace AceOfSpades.Server
             }
 
             base.Update(deltaTime);
+        }
+
+        void HandleKillStreak(ServerMPPlayer player, NetworkPlayer netPlayer, float killCredit)
+        {
+            float previousKillStreak = player.KillStreak;
+            player.KillStreak += killCredit;
+
+            if (AllowMelonLaunchers)
+            {
+                float previousMod = previousKillStreak % 7f;
+                float newMod = player.KillStreak % 7f;
+
+                if (newMod < previousMod)
+                {
+                    player.NumMelons = Characters.Player.MAX_MELONS;
+                    Screen.Chat($"{netPlayer.Name} has acquired the melon launcher!");
+                }
+            }
         }
     }
 }

@@ -255,6 +255,8 @@ namespace AceOfSpades.Client.Gui
                         ammoLabel.Text = string.Format("Gx{0}", Player.NumGrenades);
                     else if (wep.Type.HasFlag(ItemType.Spade))
                         ammoLabel.Text = string.Format("Bx{0}", Player.NumBlocks);
+                    else if (wep.Type.HasFlag(ItemType.MelonLauncher))
+                        ammoLabel.Text = string.Format("Mx{0}", Player.NumMelons);
                     else
                         ammoLabel.Text = string.Format("--/-- | x--");
                 }

@@ -133,7 +133,8 @@ namespace AceOfSpades.Tools
         public void Update(float deltaTime)
         {
             bool playerMoved = cc.IsMoving && Maths.Distance(lastPos, player.Transform.Position) > 0;
-            bool heldItemIsGun = itemManager.SelectedItem != null && itemManager.SelectedItem.Type.HasFlag(ItemType.Gun);
+            bool heldItemIsGun = itemManager.SelectedItem != null && (itemManager.SelectedItem.Type.HasFlag(ItemType.Gun)
+                || itemManager.SelectedItem.Type.HasFlag(ItemType.MelonLauncher));
             bool isSprinting = heldItemIsGun && player.IsSprinting && playerMoved;
 
             Vector3 useBobOffset = player.IsAiming ? bobOffset : isSprinting ? bobSprintOffset : Vector3.Zero;

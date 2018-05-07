@@ -94,7 +94,7 @@ namespace AceOfSpades.Client.Net
 
         public override void OnClientInbound(PlayerSnapshot snapshot)
         {
-            ItemManager.Equip(snapshot.SelectedItem);
+            ItemManager.Equip(snapshot.SelectedItem, forceEquip: true);
             ItemManager.MuzzleFlashIterations = snapshot.TimesShot;
 
             yawAnim.SetTarget(snapshot.CamYaw);

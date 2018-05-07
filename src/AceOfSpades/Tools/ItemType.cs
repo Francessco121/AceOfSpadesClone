@@ -13,6 +13,7 @@ namespace AceOfSpades.Tools
         Gun = 2,
         BlockItem = 4,
         Spade = 8,
-        Grenade = 16
+        Grenade = 16,
+        MelonLauncher = 32
     }
 }

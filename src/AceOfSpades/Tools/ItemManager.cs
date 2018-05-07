@@ -89,7 +89,7 @@ namespace AceOfSpades.Tools
             Equip(defaultItem);
         }
 
-        public void Equip(int index)
+        public void Equip(int index, bool forceEquip = false)
         {
             if (SelectedItemIndex == index)
                 return;
@@ -105,7 +105,7 @@ namespace AceOfSpades.Tools
             {
                 Item item = items[index];
 
-                if (item.CanEquip())
+                if (forceEquip || item.CanEquip())
                 {
                     SelectedItem = item;
                     SelectedItem.OnEquip();

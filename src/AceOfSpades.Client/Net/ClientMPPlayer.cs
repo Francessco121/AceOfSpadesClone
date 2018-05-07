@@ -74,7 +74,8 @@ namespace AceOfSpades.Client.Net
 
                 // Check if aiming
                 IsAiming = ItemManager.SelectedItem != null
-                    && ItemManager.SelectedItem.Type.HasFlag(ItemType.Gun)
+                    && (ItemManager.SelectedItem.Type.HasFlag(ItemType.Gun)
+                        || ItemManager.SelectedItem.Type.HasFlag(ItemType.MelonLauncher))
                     && ItemManager.SelectedItem.CanSecondaryFire()
                     ? inputM2Held : false;
 
@@ -184,6 +185,7 @@ namespace AceOfSpades.Client.Net
             Health = snapshot.Health;
             NumBlocks = snapshot.NumBlocks;
             NumGrenades = snapshot.NumGrenades;
+            NumMelons = snapshot.NumMelons;
 
             HitFeedbackPositions.Clear();
             foreach (Vector3 vec in snapshot.HitFeedbackSnapshot.Hits)

@@ -39,7 +39,7 @@ namespace AceOfSpades.Characters
                 new Grenade(ItemManager, masterRenderer),
                 new Spade(ItemManager, masterRenderer),
                 new BlockItem(ItemManager, masterRenderer),
-               // new MelonLauncher(ItemManager, renderer, 2)
+                new MelonLauncher(ItemManager, masterRenderer)
             }, 0);
         }
 

@@ -47,6 +47,7 @@ namespace AceOfSpades.Client.Net
 
             // Add remotes
             channel.AddRemoteEvent("Client_ThrowGrenade", R_ThrowGrenade);
+            channel.AddRemoteEvent("Client_ShootMelon", R_ShootMelon);
             channel.AddRemoteEvent("Client_ServerImpact", R_ServerImpact);
             channel.AddRemoteEvent("Client_RolledBackServerPlayer", R_RolledBackServerPlayer);
 
@@ -67,6 +68,7 @@ namespace AceOfSpades.Client.Net
 
             // Remove remotes
             channel.RemoveRemoteEvent("Client_ThrowGrenade");
+            channel.RemoveRemoteEvent("Client_ShootMelon");
             channel.RemoveRemoteEvent("Client_ServerImpact");
             channel.RemoveRemoteEvent("Client_RolledBackServerPlayer");
 
@@ -164,6 +166,19 @@ namespace AceOfSpades.Client.Net
             float power = data.ReadFloat();
 
             ThrowGrenadeRep(null, new Vector3(x, y, z), new Vector3(vx, vy, vz), power);
+        }
+
+        void R_ShootMelon(NetConnection server, NetBuffer data, ushort numArgs)
+        {
+            float x = data.ReadFloat();
+            float y = data.ReadFloat();
+            float z = data.ReadFloat();
+
+            float vx = data.ReadFloat();
+            float vy = data.ReadFloat();
+            float vz = data.ReadFloat();
+
+            ShootMelonRep(null, new Vector3(x, y, z), new Vector3(vx, vy, vz));
         }
 
         public override void GunFired(float verticalRecoil, float horizontalRecoil, float kickback)
@@ -297,9 +312,21 @@ namespace AceOfSpades.Client.Net
                 power);
         }
 
+        public override void ShootMelon(Player owner, Vector3 origin, Vector3 dir)
+        {
+            channel.FireEvent("Server_ShootMelon", client.ServerConnection,
+                origin.X, origin.Y, origin.Z,
+                dir.X, dir.Y, dir.Z);
+        }
+
         public void ThrowGrenadeRep(Player owner, Vector3 origin, Vector3 dir, float power)
         {
             base.ThrowGrenade(owner, origin, dir, power);
+        }
+
+        public void ShootMelonRep(Player owner, Vector3 origin, Vector3 dir)
+        {
+            base.ShootMelon(owner, origin, dir);
         }
 
         public bool TryGetPlayer(ushort id, out ClientPlayer player)

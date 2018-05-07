@@ -55,8 +55,10 @@ namespace AceOfSpades.Client
                 new Grenade(ItemManager, renderer),
                 new Spade(ItemManager, renderer),
                 new BlockItem(ItemManager, renderer),
-                new MelonLauncher(ItemManager, renderer, 9999)
+                new MelonLauncher(ItemManager, renderer)
             }, 5);
+
+            NumMelons = MAX_MELONS;
 
             CharacterController.OnCollision += CharacterController_OnCollision;
         }
@@ -117,7 +119,8 @@ namespace AceOfSpades.Client
 
             // Check if aiming
             IsAiming = AllowUserInput && ItemManager.SelectedItem != null
-                && ItemManager.SelectedItem.Type.HasFlag(ItemType.Gun)
+                && (ItemManager.SelectedItem.Type.HasFlag(ItemType.Gun)
+                    || ItemManager.SelectedItem.Type.HasFlag(ItemType.MelonLauncher))
                 && ItemManager.SelectedItem.CanSecondaryFire()
                 ? Input.GetControl("SecondaryFire") : false;
 

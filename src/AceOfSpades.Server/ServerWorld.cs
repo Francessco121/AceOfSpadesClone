@@ -59,6 +59,7 @@ namespace AceOfSpades.Server
 
             channel.AddRemoteEvent("Server_SetBlock", R_SetBlock);
             channel.AddRemoteEvent("Server_ThrowGrenade", R_ThrowGrenade);
+            channel.AddRemoteEvent("Server_ShootMelon", R_ShootMelon);
 
             objectComponent.OnCreatableInstantiated   += ObjectComponent_OnCreatableInstantiated;
             objectComponent.OnCreatableDestroyed      += ObjectComponent_OnCreatableDestroyed;
@@ -85,6 +86,7 @@ namespace AceOfSpades.Server
         {
             channel.RemoveRemoteEvent("Server_SetBlock");
             channel.RemoveRemoteEvent("Server_ThrowGrenade");
+            channel.RemoveRemoteEvent("Server_ShootMelon");
 
             objectComponent.OnCreatableInstantiated   -= ObjectComponent_OnCreatableInstantiated;
             objectComponent.OnCreatableDestroyed      -= ObjectComponent_OnCreatableDestroyed;
@@ -217,6 +219,29 @@ namespace AceOfSpades.Server
 
                     if (!DashCMD.GetCVar<bool>("ch_infammo"))
                         player.NumGrenades--;
+                }
+            }
+        }
+
+        void R_ShootMelon(NetConnection client, NetBuffer buffer, ushort numArgs)
+        {
+            float ox = buffer.ReadFloat();
+            float oy = buffer.ReadFloat();
+            float oz = buffer.ReadFloat();
+
+            float dx = buffer.ReadFloat();
+            float dy = buffer.ReadFloat();
+            float dz = buffer.ReadFloat();
+
+            ServerMPPlayer player;
+            if (players.TryGetValue(client, out player))
+            {
+                if (player.NumMelons > 0)
+                {
+                    ShootMelon(player, new Vector3(ox, oy, oz), new Vector3(dx, dy, dz));
+
+                    if (!DashCMD.GetCVar<bool>("ch_infammo"))
+                        player.NumMelons--;
                 }
             }
         }
@@ -435,6 +460,9 @@ namespace AceOfSpades.Server
             MelonEntity ent = new MelonEntity(owner, origin, dir, this);
             melons.Add(ent);
             AddGameObject(ent);
+
+            channel.FireEventForAllConnections("Client_ShootMelon", origin.X, origin.Y, origin.Z,
+                dir.X, dir.Y, dir.Z);
         }
 
         public override void Explode(Explosion explosion)
@@ -510,7 +538,7 @@ namespace AceOfSpades.Server
                         //float fa = explosion.DamageFalloff * explosion.Damage;
                        // float damage = MathHelper.Clamp((fa / eResult.IntersectionDistance.Value) - (fa / 200f), 0, explosion.Damage);
 
-                        DamagePlayer((ServerMPPlayer)explosion.Owner, "Grenade", player, damage, origin);
+                        DamagePlayer((ServerMPPlayer)explosion.Owner, explosion.EntityName, player, damage, origin);
                     }
                 }
 

@@ -48,6 +48,8 @@ namespace AceOfSpades.Server
         public bool HasIntel { get { return Intel != null; } }
         public Intel Intel { get; private set; }
 
+        public float KillStreak;
+
         const int MAX_STORED_TRANSFORMS = 100;
         const float REFRESH_COOLDOWN = 5f;
 
@@ -324,6 +326,7 @@ namespace AceOfSpades.Server
                 snapshot.Health = Health;
                 snapshot.NumBlocks = (ushort)NumBlocks;
                 snapshot.NumGrenades = (byte)NumGrenades;
+                snapshot.NumMelons = (byte)NumMelons;
             }
             else
             {

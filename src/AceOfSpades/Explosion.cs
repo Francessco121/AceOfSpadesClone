@@ -17,7 +17,9 @@ namespace AceOfSpades
 
         public Player Owner;
 
-        public Explosion(Player owner, Vector3 origin, float blockRadius, float playerRadius)
+        public string EntityName;
+
+        public Explosion(Player owner, Vector3 origin, float blockRadius, float playerRadius, string entityName)
         {
             Owner = owner;
             Origin = origin;
@@ -25,10 +27,11 @@ namespace AceOfSpades
             PlayerRadius = playerRadius;
             Damage = 0;
             DamageFalloff = 1f;
+            EntityName = entityName;
         }
 
         public Explosion(Player owner, Vector3 origin, float blockRadius, float playerRadius, 
-            float damage, float damageFalloff)
+            float damage, float damageFalloff, string entityName)
         {
             Owner = owner;
             Origin = origin;
@@ -36,6 +39,7 @@ namespace AceOfSpades
             PlayerRadius = playerRadius;
             Damage = damage;
             DamageFalloff = damageFalloff;
+            EntityName = entityName;
         }
     }
 }

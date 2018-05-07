@@ -91,6 +91,12 @@ namespace AceOfSpades.Net
             set { numGrenades.Value = value; }
         }
 
+        public byte NumMelons
+        {
+            get { return (byte)numMelons.Value; }
+            set { numMelons.Value = value; }
+        }
+
         public byte HitEnemy
         {
             get { return hitEnemy.Iterations; }
@@ -112,6 +118,7 @@ namespace AceOfSpades.Net
         SnapshotField health;
         SnapshotField numBlocks;
         SnapshotField numGrenades;
+        SnapshotField numMelons;
 
         SnapshotField currentMag;
         SnapshotField storedAmmo;
@@ -142,6 +149,7 @@ namespace AceOfSpades.Net
                 health = AddPrimitiveField<float>();
                 numBlocks = AddPrimitiveField<ushort>();
                 numGrenades = AddPrimitiveField<byte>();
+                numMelons = AddPrimitiveField<byte>();
                 AddCustomField(HitFeedbackSnapshot = new HitFeedbackSnapshot());
                 hitEnemy = (Trigger)AddTrigger().Value;
             }

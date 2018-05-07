@@ -17,7 +17,7 @@ namespace AceOfSpades
         PhysicsBodyComponent physicsBody;
 
         public MelonEntity(Player owner, Vector3 position, Vector3 velocity, World world) 
-            : base(position - new Vector3(1))
+            : base(position)
         {
             this.owner = owner;
             this.world = world;
@@ -26,9 +26,10 @@ namespace AceOfSpades
             physicsBody = new PhysicsBodyComponent(new Vector3(2f), 0.0001f);
             AddComponent(physicsBody);
 
-            physicsBody.Velocity = velocity * 400;
+            physicsBody.Velocity = velocity * 300;
 
-            physicsBody.CanCollideWithSoft = false;
+            physicsBody.CanCollideWithSoft = true;
+            physicsBody.CanBePushedBySoft = false;
             physicsBody.IsAffectedByGravity = true;
 
             physicsBody.OnCollision += PhysicsBody_OnCollision;
@@ -45,11 +46,11 @@ namespace AceOfSpades
 
         private void PhysicsBody_OnCollision(object sender, PhysicsBodyComponent e)
         {
-            if (!IsDed && e.GameObject is PhysicsBlock)
+            if (!IsDed && (e.GameObject is PhysicsBlock || (owner != null && e.GameObject is Player player && owner.Team != player.Team)))
             {
                 physicsBody.OnCollision -= PhysicsBody_OnCollision;
                 IsDed = true;
-                world.Explode(new Explosion(owner, Transform.Position, 30, 50, 300, 0.5f));
+                world.Explode(new Explosion(owner, Transform.Position, 30, 40, 200, 0.35f, "Melon"));
 
                 Dispose();
             }
@@ -65,7 +66,9 @@ namespace AceOfSpades
 
         protected override void Draw()
         {
-            renderer.WorldMatrix = Transform.Matrix;
+            renderer.WorldMatrix = Matrix4.LookAt(Vector3.Zero, physicsBody.Velocity, Vector3.Up).ClearTranslation().Inverse()
+                * Matrix4.CreateTranslation(Transform.Position);
+
             base.Draw();
         }
     }

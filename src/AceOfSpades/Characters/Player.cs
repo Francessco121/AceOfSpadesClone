@@ -25,6 +25,7 @@ namespace AceOfSpades.Characters
         public const float MAX_HEALTH = 100;
         public const int MAX_GRENADES = 3;
         public const int MAX_BLOCKS = 200;
+        public const int MAX_MELONS = 2;
 
         public bool AllowUserInput { get; set; } = true;
         public abstract bool IsRenderingThirdperson { get; set; }
@@ -58,6 +59,13 @@ namespace AceOfSpades.Characters
             set { numGrenades = MathHelper.Clamp(value, 0, MAX_GRENADES); }
         }
         int numGrenades = MAX_GRENADES;
+
+        public int NumMelons
+        {
+            get { return numMelons; }
+            set { numMelons = MathHelper.Clamp(value, 0, MAX_MELONS); }
+        }
+        int numMelons = 0;
 
         public virtual float Health { get; protected set; } = MAX_HEALTH;
 

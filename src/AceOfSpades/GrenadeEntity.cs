@@ -65,7 +65,7 @@ namespace AceOfSpades
                 if (timer <= 0)
                 {
                     IsDed = true;
-                    world.Explode(new Explosion(owner, Transform.Position, BLOCK_RADIUS, PLAYER_RADIUS, DAMAGE, DAMAGE_FALLOFF));
+                    world.Explode(new Explosion(owner, Transform.Position, BLOCK_RADIUS, PLAYER_RADIUS, DAMAGE, DAMAGE_FALLOFF, "Grenade"));
 
                     Dispose();
                 }
