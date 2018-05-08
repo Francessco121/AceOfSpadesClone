@@ -11,8 +11,8 @@ using System.Threading;
 
 namespace Dash.Engine.Graphics
 {
-    public delegate void WindowScrollCallback(GameWindow window, int xScroll, int yScroll);
-    public delegate void WindowCursorMoveCallback(GameWindow window, int x, int y);
+    public delegate void WindowScrollCallback(GameWindow window, float xScroll, float yScroll);
+    public delegate void WindowCursorMoveCallback(GameWindow window, float x, float y);
     public delegate void WindowResizedCallback(GameWindow window, int width, int height);
     public delegate void WindowFocusCallback(GameWindow window, bool focused);
     public delegate void WindowKeyCallback(GameWindow window, Key key, int scancode, KeyAction action, KeyModifiers modifiers);
@@ -317,13 +317,13 @@ namespace Dash.Engine.Graphics
         void OnInputScroll(GlfwWindowPtr _, double x, double y)
         {
             if (OnScroll != null)
-                OnScroll(this, (int)x, (int)y);
+                OnScroll(this, (float)x, (float)y);
         }
 
         void OnMouseMove(GlfwWindowPtr _, double x, double y)
         {
             if (OnCursorMoved != null)
-                OnCursorMoved(this, (int)x, (int)y);
+                OnCursorMoved(this, (float)x, (float)y);
         }
 
         void OnSizeChanged(GlfwWindowPtr _, int width, int height)

@@ -78,30 +78,30 @@ namespace Dash.Engine
             }
         }
 
-        public static int CursorX
+        public static float CursorX
         {
             get { return ms.X; }
             set { SetCursorPos(value, CursorY); }
         }
-        public static int CursorY
+        public static float CursorY
         {
             get { return ms.Y; }
             set { SetCursorPos(CursorX, value); }
         }
-        public static int ClampedCursorX { get { return ms.ClampedX; } }
-        public static int ClampedCursorY { get { return ms.ClampedY; } }
-        public static int CursorDeltaX { get; private set; }
-        public static int CursorDeltaY { get; private set; }
+        public static float ClampedCursorX { get { return ms.ClampedX; } }
+        public static float ClampedCursorY { get { return ms.ClampedY; } }
+        public static float CursorDeltaX { get; private set; }
+        public static float CursorDeltaY { get; private set; }
 
         public static Vector2i CursorPosition
         {
             get { return new Vector2i(CursorX, CursorY); }
         }
 
-        public static int ScrollX { get; private set; }
-        public static int ScrollY { get; private set; }
-        public static int ScrollDeltaX { get; private set; }
-        public static int ScrollDeltaY { get; private set; }
+        public static float ScrollX { get; private set; }
+        public static float ScrollY { get; private set; }
+        public static float ScrollDeltaX { get; private set; }
+        public static float ScrollDeltaY { get; private set; }
 
         public static bool IsControlHeld { get { return GetKey(Key.LeftControl) || GetKey(Key.RightControl); } }
         public static bool IsAltHeld { get { return GetKey(Key.LeftAlt) || GetKey(Key.RightAlt); } }
@@ -161,7 +161,7 @@ namespace Dash.Engine
         static GameWindow window;
 
         static bool windowWasFocused;
-        static int lastScrollX, lastScrollY;
+        static float lastScrollX, lastScrollY;
 
         public static KeyboardState GetKeyboardState()
         {
@@ -200,7 +200,7 @@ namespace Dash.Engine
             return wrapped;
         }
 
-        public static void SetCursorPos(int x, int y)
+        public static void SetCursorPos(float x, float y)
         {
             Glfw.SetCursorPos(window.GetPointer(), x, y);
         }
@@ -282,7 +282,7 @@ namespace Dash.Engine
             }
         }
 
-        static void OnScroll(GameWindow _, int x, int y)
+        static void OnScroll(GameWindow _, float x, float y)
         {
             ScrollX = x;
             ScrollY = y;

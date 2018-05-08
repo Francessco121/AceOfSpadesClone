@@ -18,24 +18,24 @@ namespace Dash.Engine
 
         public static MouseButton[] AllButtons { get; }
 
-        public int X { get; private set; }
-        public int Y { get; private set; }
+        public float X { get; private set; }
+        public float Y { get; private set; }
 
         /// <summary>
         /// Gets the X cursor coordinate clamped between the window
         /// left and right bounds. Useful for when the cursor mode is set
         /// to 'captured'.
         /// </summary>
-        public int ClampedX { get; private set; }
+        public float ClampedX { get; private set; }
         /// <summary>
         /// Gets the Y cursor coordinate clamped between the window
         /// top and bottom bounds. Useful for when the cursor mode is set
         /// to 'captured'.
         /// </summary>
-        public int ClampedY { get; private set; }
+        public float ClampedY { get; private set; }
 
-        public int ScrollX { get; private set; }
-        public int ScrollY { get; private set; }
+        public float ScrollX { get; private set; }
+        public float ScrollY { get; private set; }
 
         public Dictionary<MouseButton, bool> Buttons { get; private set; }
 
@@ -68,8 +68,8 @@ namespace Dash.Engine
             double _x, _y;
             Glfw.GetCursorPos(ptr, out _x, out _y);
 
-            X = (int)_x;
-            Y = (int)_y;
+            X = (float)_x;
+            Y = (float)_y;
 
             ClampedX = MathHelper.Clamp(X, 0, window.Width);
             ClampedY = MathHelper.Clamp(Y, 0, window.Height);

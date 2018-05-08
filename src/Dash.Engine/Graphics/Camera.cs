@@ -248,11 +248,11 @@ namespace Dash.Engine.Graphics
                 float sensitivity = Mode == CameraMode.FPS ? FPSMouseSensitivity : ArcBallMouseSensitivity;
 
                 float xDelta = Input.CursorDeltaX * sensitivity;
-                float YDelta = Input.CursorDeltaY * sensitivity;
+                float yDelta = Input.CursorDeltaY * sensitivity;
 
-                if (xDelta != 0 || YDelta != 0)
+                if (xDelta != 0 || yDelta != 0)
                 {
-                    targetPitch = MathHelper.Clamp(targetPitch + YDelta, -89.9f, 89.9f);
+                    targetPitch = MathHelper.Clamp(targetPitch + yDelta, -89.9f, 89.9f);
                     targetYaw += xDelta;
                 }
             }
