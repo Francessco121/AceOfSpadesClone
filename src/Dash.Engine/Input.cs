@@ -139,10 +139,9 @@ namespace Dash.Engine
 
         public static bool IsCursorLocked
         {
-            get { return isCursorLocked; }
-            set { isCursorLocked = value; }
+            get { return window.CursorMode == CursorMode.CursorCaptured; }
+            set { window.CursorMode = CursorMode.CursorCaptured; }
         }
-        static bool isCursorLocked;
 
         public static Key[] GetPressedKeys() { return heldKeys.ToArray(); }
 
@@ -242,16 +241,8 @@ namespace Dash.Engine
                 }
                 else
                 {
-                    if (!isCursorLocked)
-                    {
-                        CursorDeltaX = ms.X - lms.X;
-                        CursorDeltaY = ms.Y - lms.Y;
-                    }
-                    else
-                    {
-                        CursorDeltaX = ms.X - (window.Width / 2);
-                        CursorDeltaY = ms.Y - (window.Height / 2);
-                    }
+                    CursorDeltaX = ms.X - lms.X;
+                    CursorDeltaY = ms.Y - lms.Y;
 
                     ScrollDeltaX = lastScrollX;
                     ScrollDeltaY = lastScrollY;
@@ -276,9 +267,6 @@ namespace Dash.Engine
             {
                 lkb = kb;
                 lms = ms;
-
-                if (isCursorLocked)
-                    SetCursorPos(window.Width / 2, window.Height / 2);
             }
         }
 
