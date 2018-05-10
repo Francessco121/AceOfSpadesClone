@@ -2,6 +2,7 @@
 using AceOfSpades.Net;
 using AceOfSpades.Tools;
 using Dash.Engine;
+using Dash.Engine.Animation;
 using Dash.Engine.Diagnostics;
 using Dash.Engine.Graphics;
 using Dash.Engine.Physics;
@@ -60,6 +61,8 @@ namespace AceOfSpades.Server
 
         Queue<NetworkBullet> bulletsToFire;
 
+        Vector3Anim movementAnim;
+
         public ServerMPPlayer(World world, Vector3 position, Team team)
              : base(null, world, new SimpleCamera(), position, team)
         {
@@ -67,6 +70,7 @@ namespace AceOfSpades.Server
 
             playerTransforms = new List<PlayerTransform>();
             bulletsToFire = new Queue<NetworkBullet>();
+            movementAnim = new Vector3Anim();
 
             // Let client's handle movement. 
             // - We don't need to bother with terrain collision, only entity collision.
@@ -127,12 +131,14 @@ namespace AceOfSpades.Server
         {
             if (StateInfo != null)
             {
-                // TODO: Should we interpolate our server-side position?
-
                 // Sync our server transform with the client's reported position
-                Transform.Position.X = ClientSnapshot.X;
-                Transform.Position.Y = ClientSnapshot.Y;
-                Transform.Position.Z = ClientSnapshot.Z;
+                Vector3 clientPosition = new Vector3(ClientSnapshot.X, ClientSnapshot.Y, ClientSnapshot.Z);
+                if (movementAnim.Target != clientPosition)
+                    movementAnim.SetTarget(clientPosition);
+
+                movementAnim.Step(deltaTime * 30f);
+
+                Transform.Position = movementAnim.Value;
 
                 // Sync our server camera with the client's
                 camera.Yaw = ClientSnapshot.CamYaw;
