@@ -142,6 +142,8 @@ namespace AceOfSpades.Net
 
             stateFlag = AddPrimitiveField<ByteFlag>();
 
+            selectedItem = AddPrimitiveField<byte>();
+
             if (isOwner)
             {
                 currentMag = AddPrimitiveField<byte>();
@@ -155,8 +157,6 @@ namespace AceOfSpades.Net
             }
             else
             {
-                selectedItem = AddPrimitiveField<byte>();
-
                 camYaw = AddPrimitiveField<float>();
                 camPitch = AddPrimitiveField<float>();
 

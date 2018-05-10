@@ -317,6 +317,8 @@ namespace AceOfSpades.Server
             snapshot.IsCrouching = ClientSnapshot.IsCrouching; 
             snapshot.IsFlashlightOn = ClientSnapshot.IsFlashlightVisible;
 
+            snapshot.SelectedItem = (byte)ItemManager.SelectedItemIndex;
+
             if (snapshot.IsOwner)
             {
                 // Owner-only data
@@ -339,8 +341,6 @@ namespace AceOfSpades.Server
                 // Replicated-only data
                 snapshot.CamYaw = ClientSnapshot.CamYaw;
                 snapshot.CamPitch = ClientSnapshot.CamPitch;
-
-                snapshot.SelectedItem = (byte)ItemManager.SelectedItemIndex;
 
                 snapshot.TimesShot = (byte)ItemManager.MuzzleFlashIterations;
                 ItemManager.MuzzleFlashIterations = 0;

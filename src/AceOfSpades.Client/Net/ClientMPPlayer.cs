@@ -173,7 +173,7 @@ namespace AceOfSpades.Client.Net
 
         public override void OnClientInbound(PlayerSnapshot snapshot)
         {
-            if (ItemManager.SelectedItem != null)
+            if (ItemManager.SelectedItem != null && ItemManager.SelectedItemIndex == snapshot.SelectedItem)
             {
                 if (ItemManager.SelectedItem is Gun gun)
                 {
