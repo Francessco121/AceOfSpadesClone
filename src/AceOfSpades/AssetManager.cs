@@ -2,6 +2,7 @@
 using AceOfSpades.IO;
 using AceOfSpades.Net;
 using Dash.Engine;
+using Dash.Engine.Audio;
 using Dash.Engine.Diagnostics;
 using Dash.Engine.Graphics;
 using Dash.Engine.Graphics.Gui;
@@ -15,6 +16,7 @@ namespace AceOfSpades
     {
         static Dictionary<string, VoxelObject> models = new Dictionary<string, VoxelObject>();
         static Dictionary<string, BMPFont> fonts = new Dictionary<string, BMPFont>();
+        static Dictionary<string, AudioBuffer> sound = new Dictionary<string, AudioBuffer>();
 
         static AssetManager()
         {
@@ -96,6 +98,37 @@ namespace AceOfSpades
                 }
                 else
                     throw new FileNotFoundException(string.Format("Failed to load model {0}!", filePath));
+            }
+        }
+
+        public static AudioBuffer LoadSound(string filePath)
+        {
+            if (GlobalNetwork.IsServer)
+                return null;
+
+            filePath = GLoader.GetContentRelativePath(Path.Combine("Sounds", filePath));
+
+            AudioBuffer buffer;
+            if (sound.TryGetValue(filePath, out buffer))
+                return buffer;
+            else
+            {
+                string ext = Path.GetExtension(filePath);
+
+                switch (ext)
+                {
+                    case ".wav":
+                        buffer = new WavFile(filePath);
+                        break;
+                    case ".ogg":
+                        buffer = new OggFile(filePath);
+                        break;
+                    default:
+                        throw new IOException($"Audio files with extension {ext} are not supported!");
+                }
+
+                sound.Add(filePath, buffer);
+                return buffer;
             }
         }
     }

@@ -22,6 +22,7 @@ namespace AceOfSpades.Tools
         public int MuzzleFlashIterations { get; set; }
 
         public bool DontUpdateItems;
+        public bool IsReplicated { get; set; }
 
         static Key[] equipKeys = new Key[]
         {
@@ -198,6 +199,8 @@ namespace AceOfSpades.Tools
         {
             if (SelectedItem != null)
             {
+                SelectedItem.UpdateReplicated(deltaTime);
+
                 // Handle gun specific input
                 if (SelectedItem.Type.HasFlag(ItemType.Gun))
                 {
@@ -215,6 +218,7 @@ namespace AceOfSpades.Tools
             {
                 if (((ClientMuzzleFlash)muzzleFlash).UpdateReplicated(gun, MuzzleFlashIterations, deltaTime))
                 {
+                    gun.OnReplicatedPrimaryFire();
                     viewbob.ApplyKickback(gun.GunConfig.ModelKickback);
                     MuzzleFlashIterations--;
                 }

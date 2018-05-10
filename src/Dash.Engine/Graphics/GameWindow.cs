@@ -231,7 +231,7 @@ namespace Dash.Engine.Graphics
                 SetVSync(false);
 
                 Renderer = new MasterRenderer(width, height, startOptions);
-                //InitOpenAL();
+                InitOpenAL();
 
                 GLError.Begin();
                 Load();

@@ -2,6 +2,7 @@
 using AceOfSpades.Graphics;
 using AceOfSpades.Net;
 using Dash.Engine;
+using Dash.Engine.Audio;
 using Dash.Engine.Graphics.OpenGL;
 using Dash.Engine.Physics;
 
@@ -51,6 +52,16 @@ namespace AceOfSpades
                 physicsBody.OnCollision -= PhysicsBody_OnCollision;
                 IsDed = true;
                 world.Explode(new Explosion(owner, Transform.Position, 30, 40, 200, 0.35f, "Melon"));
+
+                if (!GlobalNetwork.IsServer)
+                {
+                    AudioSource explodeAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Explode.wav"));
+                    explodeAudioSource.MaxDistance = 1000;
+                    explodeAudioSource.Position = Transform.Position;
+                    explodeAudioSource.Pitch = 2f;
+
+                    world.PlayWorldAudio(new WorldAudioSource(explodeAudioSource));
+                }
 
                 Dispose();
             }

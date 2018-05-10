@@ -4,6 +4,7 @@ using AceOfSpades.Graphics;
 using AceOfSpades.Graphics.Renderers;
 using AceOfSpades.Net;
 using Dash.Engine;
+using Dash.Engine.Audio;
 using Dash.Engine.Diagnostics;
 using Dash.Engine.Graphics;
 using Dash.Engine.IO;
@@ -101,6 +102,13 @@ namespace AceOfSpades.Client
 
             //if (AL.Efx == null)
             //    throw new Exception("Sound card does not support OpenAL Efx!");
+
+            AL.DistanceModel(ALDistanceModel.LinearDistance);
+
+            // 1 meter = 1 block
+            Camera.Active.AudioListener.EfxMetersPerUnit = 1f / Block.CUBE_SIZE;
+
+            Camera.Active.AudioListener.Gain = 0.1f;
 
             LoadFromConfig();
 

@@ -37,7 +37,13 @@ namespace AceOfSpades.Tools
                 ModelKickback = 1.25f,
                 AimFOV = 60,
                 AimMouseSensitivityScale = 0.9f,
-                ReloadTime = 3.5f
+                ReloadTime = 3.5f,
+                PrimaryFireAudio = new GunAudioConfig
+                {
+                    LocalFilepath = "Weapons/Shotgun/FireLocal.wav",
+                    ReplicatedFilepath = "Weapons/Shotgun/Fire.wav",
+                    MaxDistance = 500
+                }
             };
         }
     }

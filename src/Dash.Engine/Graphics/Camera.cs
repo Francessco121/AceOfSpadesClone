@@ -65,7 +65,7 @@ namespace Dash.Engine.Graphics
         public Transform LockedToTransform;
         public Vector3 FirstPersonLockOffset;
 
-        //public AudioListener AudioListener { get; }
+        public AudioListener AudioListener { get; }
 
         public bool NeedsResize;
 
@@ -88,7 +88,8 @@ namespace Dash.Engine.Graphics
 
         Vector3 lastPosition;
 
-        public Camera(MasterRenderer renderer) {
+        public Camera(MasterRenderer renderer)
+        {
             AspectRatio = (float)renderer.ScreenWidth / renderer.ScreenHeight;
             this.renderer = renderer;
 
@@ -98,14 +99,14 @@ namespace Dash.Engine.Graphics
             MouseRay = new Ray(Vector3.Zero, Vector3.UnitZ);
             Position = new Vector3(0, 400, 0);
             ViewFrustum = new Frustum();
-            //AudioListener = new AudioListener(Position);
+            AudioListener = new AudioListener(Position);
             UpdateMatrices();
         }
 
         public void MakeActive()
         {
             Active = this;
-            //AudioListener.MakeActive();
+            AudioListener.MakeActive();
         }
 
         public void SetMode(CameraMode newMode)
@@ -298,9 +299,9 @@ namespace Dash.Engine.Graphics
 
             // Update audio listener
             Vector3 deltaPosition = Position - lastPosition;
-            //AudioListener.Position = Position;
-           // AudioListener.Velocity = deltaPosition / deltaTime;
-            //AudioListener.SetOrientation(LookVector, Vector3.Up);
+            AudioListener.Position = Position;
+            // AudioListener.Velocity = deltaPosition / deltaTime;
+            AudioListener.SetOrientation(LookVector, Vector3.Up);
 
             lastPosition = Position;
         }

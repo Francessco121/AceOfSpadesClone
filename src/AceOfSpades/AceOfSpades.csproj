@@ -135,6 +135,7 @@
     <Compile Include="Tools\BlockItem.cs" />
     <Compile Include="Tools\Grenade.cs" />
     <Compile Include="Tools\Gun.cs" />
+    <Compile Include="Tools\GunAudioConfig.cs" />
     <Compile Include="Tools\GunConfig.cs" />
     <Compile Include="Tools\IMuzzleFlash.cs" />
     <Compile Include="Tools\ItemConfig.cs" />
@@ -185,6 +186,7 @@
     <Compile Include="Voxels\TerrainThreading\TerrainWorkerInstruction.cs" />
     <Compile Include="Voxels\VoxelPhysicsBody.cs" />
     <Compile Include="World.cs" />
+    <Compile Include="WorldAudioSource.cs" />
     <Compile Include="WorldRaycastResult.cs" />
   </ItemGroup>
   <ItemGroup>

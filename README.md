@@ -13,6 +13,9 @@ I plan to update this repository with more details on how I made this clone, and
 ### Textures
 Some textures in this repository are directly from the [OpenSpades project](https://github.com/yvt/openspades). I will remove these files from the repository if requested by the OpenSpades team. A [list of all files from OpenSpades can be found here](./src/Content/Textures/Gui/README.md).
 
+### Audio
+Due to licensing issues, none of the game's sound files will be included in this repository. The game however will continue to function without sound.
+
 ## Documentation
 
 All of the documentation for how the game works and development can be found under [the /docs folder](./docs/README.md).

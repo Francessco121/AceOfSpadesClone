@@ -98,6 +98,9 @@ namespace AceOfSpades.Tools
         protected virtual void OnPrimaryFire() { }
         protected virtual void OnSecondaryFire() { }
 
+        public virtual void OnReplicatedPrimaryFire() { }
+        public virtual void OnReplicatedSecondaryFire() { }
+
         protected virtual ItemConfig InitializeConfig()
         {
             return new ItemConfig();

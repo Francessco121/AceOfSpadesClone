@@ -6,6 +6,7 @@ using Dash.Engine.Graphics;
 using System;
 using System.Collections.Generic;
 using AceOfSpades.Graphics;
+using Dash.Engine.Audio;
 
 /* Gun.cs
  * Ethan Lafrenais
@@ -25,6 +26,9 @@ namespace AceOfSpades.Tools
         public ushort ServerStoredAmmo;
 
         public bool IsReloading { get; private set; }
+
+        readonly AudioSource fireAudioSource;
+        readonly AudioSource reloadAudioSource;
 
         float reloadTimeLeft;
 
@@ -50,6 +54,53 @@ namespace AceOfSpades.Tools
             fovAnim = new FloatAnim();
             modelAnim = new Vector3Anim();
             muzzleFlash = itemManager.GetMuzzleFlash();
+
+            if (!GlobalNetwork.IsServer)
+            {
+                if (itemManager.IsReplicated)
+                {
+                    if (GunConfig.PrimaryFireAudio?.ReplicatedFilepath != null)
+                    {
+                        fireAudioSource = LoadAudioFromConfig(GunConfig.PrimaryFireAudio, true);
+                    }
+
+                    if (GunConfig.ReloadAudio?.ReplicatedFilepath != null)
+                    {
+                        reloadAudioSource = LoadAudioFromConfig(GunConfig.ReloadAudio, true);
+                    }
+                }
+                else
+                {
+                    if (GunConfig.PrimaryFireAudio?.LocalFilepath != null)
+                    {
+                        fireAudioSource = LoadAudioFromConfig(GunConfig.PrimaryFireAudio, false);
+                    }
+
+                    if (GunConfig.ReloadAudio?.LocalFilepath != null)
+                    {
+                        reloadAudioSource = LoadAudioFromConfig(GunConfig.ReloadAudio, false);
+                    }
+                }
+            }
+        }
+
+        AudioSource LoadAudioFromConfig(GunAudioConfig config, bool replicated)
+        {
+            AudioBuffer buffer = AssetManager.LoadSound(replicated ? config.ReplicatedFilepath : config.LocalFilepath);
+
+            AudioSource audioSource = new AudioSource(buffer);
+            audioSource.Gain = replicated ? config.ReplicatedGain : config.LocalGain;
+
+            if (replicated)
+            {
+                audioSource.MaxDistance = config.MaxDistance;
+            }
+            else
+            {
+                audioSource.IsSourceRelative = true;
+            }
+
+            return audioSource;
         }
 
         public override bool CanEquip()
@@ -78,6 +129,8 @@ namespace AceOfSpades.Tools
                 Camera cam = Dash.Engine.Graphics.Camera.Active;
                 cam.FOV = 70;
                 cam.FPSMouseSensitivity = cam.DefaultFPSMouseSensitivity;
+
+                reloadAudioSource?.Stop();
             }
 
             IsReloading = false;
@@ -113,6 +166,9 @@ namespace AceOfSpades.Tools
 
                     if (!GlobalNetwork.IsServer || !DashCMD.GetCVar<bool>("ch_infammo"))
                         CurrentMag--;
+
+                    if (!GlobalNetwork.IsServer)
+                        fireAudioSource?.Play();
                 }
             }
             else if (GlobalNetwork.IsConnected && GlobalNetwork.IsClient)
@@ -128,13 +184,23 @@ namespace AceOfSpades.Tools
 
                     muzzleFlash.Show();
                     World.GunFired(GunConfig.VerticalRecoil, GetHorizontalCameraRecoil(GunConfig.HorizontalRecoil), GunConfig.ModelKickback);
+
+                    fireAudioSource?.Play();
                 }
             }
+        }
+
+        public override void OnReplicatedPrimaryFire()
+        {
+            fireAudioSource?.Play();
+
+            base.OnReplicatedPrimaryFire();
         }
 
         public void CancelReload()
         {
             IsReloading = false;
+            reloadAudioSource?.Stop();
         }
 
         float GetHorizontalCameraRecoil(float range)
@@ -150,7 +216,7 @@ namespace AceOfSpades.Tools
             return Camera.TransformNormalXY(new Vector3(hrecoil, vrecoil, 0));
         }
 
-        public void Reload()
+        public virtual void Reload()
         {
             int stored = GlobalNetwork.IsClient && GlobalNetwork.IsConnected ? ServerStoredAmmo : StoredAmmo;
             int mag = GlobalNetwork.IsClient && GlobalNetwork.IsConnected ? ServerMag : CurrentMag;
@@ -160,6 +226,8 @@ namespace AceOfSpades.Tools
 
             reloadTimeLeft = GunConfig.ReloadTime;
             IsReloading = true;
+
+            reloadAudioSource?.Play();
         }
 
         void RefillAmmo()
@@ -212,10 +280,31 @@ namespace AceOfSpades.Tools
             base.Update(deltaTime);
         }
 
+        public override void UpdateReplicated(float deltaTime)
+        {
+            if (fireAudioSource != null && fireAudioSource.Position != OwnerPlayer.Transform.Position)
+            {
+                fireAudioSource.Position = OwnerPlayer.Transform.Position;
+            }
+
+            base.UpdateReplicated(deltaTime);
+        }
+
         protected override void Draw()
         {
             if (!IsReloading)
                 base.Draw();
+        }
+
+        public override void Dispose()
+        {
+            if (!IsDisposed)
+            {
+                fireAudioSource?.Dispose();
+                reloadAudioSource?.Dispose();
+            }
+
+            base.Dispose();
         }
     }
 }
