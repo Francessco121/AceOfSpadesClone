@@ -2,6 +2,7 @@
 using AceOfSpades.Net;
 using AceOfSpades.Tools;
 using Dash.Engine;
+using Dash.Engine.Audio;
 using Dash.Engine.Graphics;
 
 /* ClientMPPlayer.cs
@@ -16,6 +17,8 @@ namespace AceOfSpades.Client.Net
 
         SimpleCamera camera;
         CameraFX camfx;
+
+        readonly AudioSource hitAudioSource;
 
         public ClientMPPlayer(MasterRenderer renderer, World world, Camera camera, Vector3 position, Team team)
             : base(renderer, world, camera, position, team)
@@ -34,6 +37,10 @@ namespace AceOfSpades.Client.Net
             Camera.Active.ArcBallMouseSensitivity = Camera.Active.DefaultArcBallMouseSensitivity;
 
             CreateStarterBackpack();
+
+            hitAudioSource = new AudioSource(AssetManager.LoadSound("Impacts/FleshLocal.wav"));
+            hitAudioSource.IsSourceRelative = true;
+            hitAudioSource.Gain = 0.2f;
         }
 
         public void OnKilled()
@@ -193,8 +200,13 @@ namespace AceOfSpades.Client.Net
 
             HitPlayer = snapshot.HitEnemy > 0;
 
-            if (HitFeedbackPositions.Count > 0 && !camfx.IsShaking)
-                camfx.ShakeCamera(0.2f, 0.05f);
+            if (HitFeedbackPositions.Count > 0)
+            {
+                hitAudioSource.Play();
+
+                if (!camfx.IsShaking)
+                    camfx.ShakeCamera(0.2f, 0.05f);
+            }
         }
 
         public void OnClientOutbound(float rtt) { }

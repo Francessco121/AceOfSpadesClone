@@ -108,7 +108,7 @@ namespace AceOfSpades.Client
             // 1 meter = 1 block
             Camera.Active.AudioListener.EfxMetersPerUnit = 1f / Block.CUBE_SIZE;
 
-            Camera.Active.AudioListener.Gain = 0.1f;
+            Camera.Active.AudioListener.Gain = 0.5f;
 
             LoadFromConfig();
 

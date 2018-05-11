@@ -100,6 +100,7 @@ namespace AceOfSpades
         public void PlayWorldAudio(WorldAudioSource source)
         {
             audioSources.Add(source);
+            source.Play();
         }
 
         public PlayerRaycastResult RaycastPlayer(Vector3 origin, Player player, float maxDist = 2000f)

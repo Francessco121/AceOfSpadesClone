@@ -58,9 +58,14 @@ namespace AceOfSpades
                     AudioSource explodeAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Explode.wav"));
                     explodeAudioSource.MaxDistance = 1000;
                     explodeAudioSource.Position = Transform.Position;
-                    explodeAudioSource.Pitch = 2f;
+                    explodeAudioSource.Pitch = 0.5f;
 
-                    world.PlayWorldAudio(new WorldAudioSource(explodeAudioSource));
+                    WorldAudioSource worldAudio = new WorldAudioSource(explodeAudioSource);
+                    int auxSlot = worldAudio.AddAuxSlot();
+                    int effect = worldAudio.AddEffect(EfxEffectType.Reverb, auxSlot);
+                    AL.Efx.Effect(effect, EfxEffectf.ReverbGain, 1f);
+
+                    world.PlayWorldAudio(worldAudio);
                 }
 
                 Dispose();

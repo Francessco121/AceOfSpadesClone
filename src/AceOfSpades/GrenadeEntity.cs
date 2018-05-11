@@ -60,7 +60,7 @@ namespace AceOfSpades
 
                 bounceAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Bounce.wav"));
                 bounceAudioSource.MaxDistance = 200;
-                bounceAudioSource.Gain = 0.5f;
+                bounceAudioSource.Gain = 0.25f;
 
                 PhysicsBody.OnCollision += PhysicsBody_OnCollision;
             }
@@ -94,7 +94,12 @@ namespace AceOfSpades
                         explodeAudioSource.MaxDistance = 1000;
                         explodeAudioSource.Position = Transform.Position;
 
-                        world.PlayWorldAudio(new WorldAudioSource(explodeAudioSource));
+                        WorldAudioSource worldAudio = new WorldAudioSource(explodeAudioSource);
+                        int auxSlot = worldAudio.AddAuxSlot();
+                        int effect = worldAudio.AddEffect(EfxEffectType.Reverb, auxSlot);
+                        AL.Efx.Effect(effect, EfxEffectf.ReverbGain, 1f);
+
+                        world.PlayWorldAudio(worldAudio);
                     }
 
                     Dispose();

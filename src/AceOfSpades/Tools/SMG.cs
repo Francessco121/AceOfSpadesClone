@@ -40,14 +40,15 @@ namespace AceOfSpades.Tools
                 PrimaryFireAudio = new GunAudioConfig
                 {
                     LocalFilepath = "Weapons/SMG/FireLocal.wav",
-                    LocalGain = 0.5f,
+                    LocalGain = 0.075f,
                     ReplicatedFilepath = "Weapons/SMG/Fire.wav",
-                    ReplicatedGain = 0.5f,
+                    ReplicatedGain = 0.15f,
                     MaxDistance = 600
                 },
                 ReloadAudio = new GunAudioConfig
                 {
-                    LocalFilepath = "Weapons/SMG/ReloadLocal.wav"
+                    LocalFilepath = "Weapons/SMG/ReloadLocal.wav",
+                    LocalGain = 0.2f
                 }
             };
         }

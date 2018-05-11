@@ -27,6 +27,7 @@ namespace AceOfSpades.Tools
                 {
                     throwAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Throw.wav"));
                     throwAudioSource.IsSourceRelative = true;
+                    throwAudioSource.Gain = 0.2f;
                 }
             }
         }
@@ -82,12 +83,12 @@ namespace AceOfSpades.Tools
 
         public override void Dispose()
         {
-            base.Dispose();
-
             if (!IsDisposed)
             {
                 throwAudioSource?.Dispose();
             }
+
+            base.Dispose();
         }
     }
 }

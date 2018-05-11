@@ -42,7 +42,9 @@ namespace AceOfSpades.Tools
                 {
                     LocalFilepath = "Weapons/Shotgun/FireLocal.wav",
                     ReplicatedFilepath = "Weapons/Shotgun/Fire.wav",
-                    MaxDistance = 500
+                    MaxDistance = 500,
+                    LocalGain = 0.2f,
+                    ReplicatedGain = 0.3f
                 }
             };
         }

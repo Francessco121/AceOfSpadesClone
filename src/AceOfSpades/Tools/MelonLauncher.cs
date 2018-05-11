@@ -1,6 +1,7 @@
 ﻿using AceOfSpades.Net;
 using Dash.Engine;
 using Dash.Engine.Animation;
+using Dash.Engine.Audio;
 using Dash.Engine.Graphics;
 
 /* MelonLauncher.cs
@@ -19,6 +20,8 @@ namespace AceOfSpades.Tools
         FloatAnim fovAnim;
         Vector3Anim modelAnim;
 
+        readonly AudioSource throwAudioSource;
+
         public MelonLauncher(ItemManager itemManager, MasterRenderer renderer) 
             : base(renderer, itemManager, ItemType.MelonLauncher)
         {
@@ -30,6 +33,17 @@ namespace AceOfSpades.Tools
             modelAnim = new Vector3Anim();
 
             LoadModel("Models/melon-launcher.aosm");
+
+            if (!GlobalNetwork.IsServer)
+            {
+                if (!itemManager.IsReplicated)
+                {
+                    throwAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Throw.wav"));
+                    throwAudioSource.IsSourceRelative = true;
+                    throwAudioSource.Pitch = 1.5f;
+                    throwAudioSource.Gain = 0.2f;
+                }
+            }
         }
 
         protected override ItemConfig InitializeConfig()
@@ -123,6 +137,8 @@ namespace AceOfSpades.Tools
 
                 if (!GlobalNetwork.IsConnected)
                     OwnerPlayer.NumMelons--;
+
+                throwAudioSource?.Play();
             }
         }
 
@@ -157,6 +173,16 @@ namespace AceOfSpades.Tools
             }
 
             base.Update(deltaTime);
+        }
+
+        public override void Dispose()
+        {
+            if (!IsDisposed)
+            {
+                throwAudioSource?.Dispose();
+            }
+
+            base.Dispose();
         }
     }
 }
