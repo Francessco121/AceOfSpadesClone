@@ -60,12 +60,7 @@ namespace AceOfSpades
                     explodeAudioSource.Position = Transform.Position;
                     explodeAudioSource.Pitch = 0.5f;
 
-                    WorldAudioSource worldAudio = new WorldAudioSource(explodeAudioSource);
-                    int auxSlot = worldAudio.AddAuxSlot();
-                    int effect = worldAudio.AddEffect(EfxEffectType.Reverb, auxSlot);
-                    AL.Efx.Effect(effect, EfxEffectf.ReverbGain, 1f);
-
-                    world.PlayWorldAudio(worldAudio);
+                    world.PlayWorldAudio(new WorldAudioSource(explodeAudioSource));
                 }
 
                 Dispose();

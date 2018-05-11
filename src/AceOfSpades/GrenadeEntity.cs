@@ -94,12 +94,7 @@ namespace AceOfSpades
                         explodeAudioSource.MaxDistance = 1000;
                         explodeAudioSource.Position = Transform.Position;
 
-                        WorldAudioSource worldAudio = new WorldAudioSource(explodeAudioSource);
-                        int auxSlot = worldAudio.AddAuxSlot();
-                        int effect = worldAudio.AddEffect(EfxEffectType.Reverb, auxSlot);
-                        AL.Efx.Effect(effect, EfxEffectf.ReverbGain, 1f);
-
-                        world.PlayWorldAudio(worldAudio);
+                        world.PlayWorldAudio(new WorldAudioSource(explodeAudioSource));
                     }
 
                     Dispose();

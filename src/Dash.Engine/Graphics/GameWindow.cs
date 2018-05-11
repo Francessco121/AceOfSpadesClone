@@ -157,33 +157,33 @@ namespace Dash.Engine.Graphics
             { throw new Exception("Failed to initialize OpenAL!", e); }
 
             // Load OpenAL Efx
-            try
-            {
-                new EffectsExtension();
+            //try
+            //{
+            //    new EffectsExtension();
 
-                if (AL.Efx == null)
-                    DashCMD.WriteWarning("OpenAL Efx is not supported!");
-            }
-            catch (Exception e)
-            {
-                DashCMD.WriteError("Failed to initialize OpenAL Efx!");
-                DashCMD.WriteError(e);
-            }
+            //    if (AL.Efx == null)
+            //        DashCMD.WriteWarning("OpenAL Efx is not supported!");
+            //}
+            //catch (Exception e)
+            //{
+            //    DashCMD.WriteError("Failed to initialize OpenAL Efx!");
+            //    DashCMD.WriteError(e);
+            //}
 
-            // Load OpenAL XRam
-            try
-            {
-                new XRamExtension();
+            //// Load OpenAL XRam
+            //try
+            //{
+            //    new XRamExtension();
 
-                // It's ok if this isn't supported
-                //if (AL.XRam == null)
-                //    DashCMD.WriteWarning("OpenAL XRam is not supported!");
-            }
-            catch (Exception e)
-            {
-                DashCMD.WriteError("Failed to initialize OpenAL XRam!");
-                DashCMD.WriteError(e);
-            }
+            //    // It's ok if this isn't supported
+            //    //if (AL.XRam == null)
+            //    //    DashCMD.WriteWarning("OpenAL XRam is not supported!");
+            //}
+            //catch (Exception e)
+            //{
+            //    DashCMD.WriteError("Failed to initialize OpenAL XRam!");
+            //    DashCMD.WriteError(e);
+            //}
         }
 
         public void Run(float targetFPS)

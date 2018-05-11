@@ -70,8 +70,8 @@ namespace Dash.Engine.Audio
     /// </summary>
     public static partial class AL
     {
-        public static EffectsExtension Efx { get; internal set; }
-        public static XRamExtension XRam { get; internal set; }
+        //public static EffectsExtension Efx { get; internal set; }
+        //public static XRamExtension XRam { get; internal set; }
 
         #region Constants
 
