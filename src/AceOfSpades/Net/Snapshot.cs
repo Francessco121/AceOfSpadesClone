@@ -306,7 +306,6 @@ namespace AceOfSpades.Net
                 // Write trigger
                 buffer.Write(t.Iterations);
                 // Reset trigger
-                t.LastIterations = t.Iterations;
                 t.Iterations = 0;
             }
             else if (field.Type == SnapshotFieldType.Snapshot)
@@ -332,7 +331,6 @@ namespace AceOfSpades.Net
                 if (field.Type == SnapshotFieldType.Trigger)
                 {
                     Trigger t = (Trigger)field.Value;
-                    t.LastIterations = t.Iterations;
                     t.Iterations = 0;
                 }
 
@@ -340,7 +338,6 @@ namespace AceOfSpades.Net
                 if (field.Type == SnapshotFieldType.Trigger)
                 {
                     Trigger t = (Trigger)field.Value;
-                    t.LastIterations = t.Iterations;
                     t.Iterations = 0;
                 }
 

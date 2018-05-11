@@ -341,8 +341,9 @@ namespace AceOfSpades.Server
                 snapshot.CamPitch = ClientSnapshot.CamPitch;
 
                 snapshot.TimesShot = (byte)ItemManager.MuzzleFlashIterations;
-                ItemManager.MuzzleFlashIterations = 0;
             }
+
+            ItemManager.MuzzleFlashIterations = 0;
         }
     }
 }

@@ -12,7 +12,6 @@ namespace AceOfSpades.Net
     public class Trigger
     {
         public byte Iterations;
-        public byte LastIterations;
 
         public void Activate(byte iterations = 1)
         {
