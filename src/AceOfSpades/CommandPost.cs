@@ -33,7 +33,7 @@ namespace AceOfSpades
             // Setup physics body
             float cubeSize = 1.5f; // blockSize * dims
             Vector3 size = new Vector3(cubeSize * 9, cubeSize * 10, cubeSize * 7);
-            PhysicsBody = new VoxelPhysicsBody(size, 10f, cubeSize);
+            PhysicsBody = new VoxelPhysicsBody(size, 2f, cubeSize);
             AddComponent(PhysicsBody);
 
             PhysicsBody.CanCollideWithSoft = true;
