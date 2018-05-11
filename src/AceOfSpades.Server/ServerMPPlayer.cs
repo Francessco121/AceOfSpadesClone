@@ -206,11 +206,9 @@ namespace AceOfSpades.Server
 
         public void DropIntel()
         {
-            // TODO: Keep intertia when dropping intel
-
             if (Intel != null)
             {
-                Intel.Drop();
+                Intel.Drop(yeet: ClientSnapshot.DropIntel);
                 Intel = null;
                 DashCMD.WriteLine("[ServerMPPlayer] Intel has been dropped!", ConsoleColor.Green);
             }

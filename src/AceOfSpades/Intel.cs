@@ -150,7 +150,7 @@ namespace AceOfSpades
             }
         }
 
-        public void Drop(bool returning = false)
+        public void Drop(bool returning = false, bool yeet = false)
         {
             if (Holder != null)
             {
@@ -158,8 +158,13 @@ namespace AceOfSpades
                 PhysicsBody.CanCollideWithSoft = true;
                 PhysicsBody.IsStatic = false;
 
-                Transform.Position = Holder.Transform.Position;
-                PhysicsBody.Velocity = Holder.GetComponent<PhysicsBodyComponent>().Velocity;
+                Transform.Position = Holder.Transform.Position + new Vector3(0, 4, 0);
+
+                if (yeet)
+                {
+                    PhysicsBody.Velocity = Holder.GetCamera().LookVector * 65f;
+                }
+
                 lastHolder = Holder;
                 lastHolderCooldown = PICKUP_COOLDOWN;
 
