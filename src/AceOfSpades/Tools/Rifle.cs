@@ -23,12 +23,12 @@ namespace AceOfSpades.Tools
         {
             return new GunConfig()
             {
-                MagazineSize = 12,
-                MaxStoredMags = 4,
-                PlayerDamage = 40,
+                MagazineSize = 8,
+                MaxStoredMags = 5,
+                PlayerDamage = 30,
                 BlockDamage = 2,
                 IsPrimaryAutomatic = false,
-                PrimaryFireDelay = 0.25f,
+                PrimaryFireDelay = 0.3f,
                 BulletSpread = 0.001f,
                 AimBulletSpread = 0,
                 HorizontalRecoil = 0.4f,
@@ -36,7 +36,7 @@ namespace AceOfSpades.Tools
                 ModelKickback = 0.7f,
                 AimFOV = 35,
                 AimMouseSensitivityScale = 0.35f,
-                ReloadTime = 4f,
+                ReloadTime = 3f,
                 PrimaryFireAudio = new GunAudioConfig
                 {
                     LocalFilepath = "Weapons/Rifle/FireLocal.wav",

@@ -12,7 +12,7 @@ namespace AceOfSpades.Tools
     public class Spade : Weapon
     {
         public const float MODIFY_RANGE = Block.CUBE_SIZE * 4;
-        const float PLAYER_DAMAGE = 30;
+        const float PLAYER_DAMAGE = 40;
 
         const float cooldownBringBack = 0.125f;
         float cooldown;

@@ -18,10 +18,10 @@ namespace AceOfSpades
         public bool IsDed { get; private set; }
         public PhysicsBodyComponent PhysicsBody { get; }
 
-        const float BLOCK_RADIUS = 22;
-        const float PLAYER_RADIUS = 40;
+        const float BLOCK_RADIUS = 25;
+        const float PLAYER_RADIUS = 50;
         const float DAMAGE = 150;
-        const float DAMAGE_FALLOFF = 0.2f;
+        const float DAMAGE_FALLOFF = 0.125f;
         const float KABOOM_DELAY = 2f;
 
         float timer = KABOOM_DELAY;

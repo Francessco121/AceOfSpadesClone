@@ -27,7 +27,7 @@ namespace AceOfSpades
             physicsBody = new PhysicsBodyComponent(new Vector3(2f), 0.0001f);
             AddComponent(physicsBody);
 
-            physicsBody.Velocity = velocity * 300;
+            physicsBody.Velocity = velocity * 400;
 
             physicsBody.CanCollideWithSoft = true;
             physicsBody.CanBePushedBySoft = false;
@@ -51,7 +51,7 @@ namespace AceOfSpades
             {
                 physicsBody.OnCollision -= PhysicsBody_OnCollision;
                 IsDed = true;
-                world.Explode(new Explosion(owner, Transform.Position, 30, 40, 200, 0.35f, "Melon"));
+                world.Explode(new Explosion(owner, Transform.Position, 55, 70, 200, 0.15f, "Melon"));
 
                 if (!GlobalNetwork.IsServer)
                 {
