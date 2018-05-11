@@ -33,6 +33,8 @@ namespace AceOfSpades.Server
         CharacterSnapshotSystem charSnapshotSystem;
         ObjectNetComponent objectComponent;
 
+        float timeSinceLastTickSend;
+
         public SnapshotNetComponent(AOSServer server) 
             : base(server)
         {
@@ -109,7 +111,7 @@ namespace AceOfSpades.Server
                 NetConnectionSnapshotState connState;
                 if (ConnectionStates.TryGetValue(packet.Sender, out connState))
                 {
-                    connState.GotPacket = true;
+                    //connState.GotPacket = true;
                     if (connState.MeasuringRTT)
                     {
                         connState.MeasuringRTT = false;
@@ -137,28 +139,46 @@ namespace AceOfSpades.Server
 
         public override void Update(float deltaTime)
         {
-            foreach (NetConnectionSnapshotState state in ConnectionStates.Values)
-            {
-                if (!state.Ready)
-                    continue;
+            //foreach (NetConnectionSnapshotState state in ConnectionStates.Values)
+            //{
+            //    if (!state.Ready)
+            //        continue;
 
-                bool gotClientSnapshot = state.GotPacket || !DashCMD.GetCVar<bool>("sv_await_cl_snap");
+                //bool gotClientSnapshot = state.GotPacket || !DashCMD.GetCVar<bool>("sv_await_cl_snap");
 
-                if (state.TimeSinceLastSend >= tickrate && gotClientSnapshot)
+                //if (state.TimeSinceLastSend >= tickrate && gotClientSnapshot)
+                if (timeSinceLastTickSend >= tickrate)
                 {
-                    SendSnapshotTo(state.Connection, state, deltaTime);
+                    foreach (NetConnectionSnapshotState state in ConnectionStates.Values)
+                    {
+                        if (!state.Ready)
+                            continue;
 
-                    state.RTT_TimeSinceLastSend = 0;
-                    state.MeasuringRTT = true;
+                        SendSnapshotTo(state.Connection, state, deltaTime);
+                        
+                        state.RTT_TimeSinceLastSend = 0;
+                        state.MeasuringRTT = true;
+                    }
+
+                    charSnapshotSystem.OnPostServerOutbound();
+                    timeSinceLastTickSend -= deltaTime;
                 }
                 else
                 {
-                    state.TimeSinceLastSend += deltaTime;
+                    foreach (NetConnectionSnapshotState state in ConnectionStates.Values)
+                    {
+                        if (!state.Ready)
+                            continue;
 
-                    if (state.MeasuringRTT)
-                        state.RTT_TimeSinceLastSend += deltaTime;
+                        //state.TimeSinceLastSend += deltaTime;
+
+                        if (state.MeasuringRTT)
+                            state.RTT_TimeSinceLastSend += deltaTime;
+                    }
+
+                    timeSinceLastTickSend += deltaTime;
                 }
-            }
+            //}
 
             base.Update(deltaTime);
         }
@@ -170,8 +190,8 @@ namespace AceOfSpades.Server
             ushort epid = connState.OutboundSnapshotId;
             connState.OutboundSnapshotId++;
 
-            connState.TimeSinceLastSend -= deltaTime;
-            connState.GotPacket = false;
+            //connState.TimeSinceLastSend -= deltaTime;
+            //connState.GotPacket = false;
 
             connState.WorldSnapshot.MaxClientTickrate = DashCMD.GetCVar<ushort>("ag_max_cl_tickrate");
             connState.WorldSnapshot.ForceSnapshotAwait = DashCMD.GetCVar<bool>("ag_cl_force_await_snap");

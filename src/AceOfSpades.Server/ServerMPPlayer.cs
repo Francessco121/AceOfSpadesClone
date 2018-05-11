@@ -342,7 +342,10 @@ namespace AceOfSpades.Server
 
                 snapshot.TimesShot = (byte)ItemManager.MuzzleFlashIterations;
             }
+        }
 
+        public void OnPostServerOutbound()
+        {
             ItemManager.MuzzleFlashIterations = 0;
         }
     }

@@ -105,5 +105,13 @@ namespace AceOfSpades.Server
                     plr.OnServerOutbound(playerSnapshot);
             }
         }
+
+        public void OnPostServerOutbound()
+        {
+            foreach (ServerMPPlayer plr in players.Values)
+            {
+                plr.OnPostServerOutbound();
+            }
+        }
     }
 }

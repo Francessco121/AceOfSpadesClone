@@ -15,8 +15,8 @@ namespace AceOfSpades.Server
         public ushort OutboundSnapshotId;
         public ushort LastInboundSnapshotId;
 
-        public float TimeSinceLastSend;
-        public bool GotPacket = true; // Server will attempt to initiate the snapshot relaying
+        //public float TimeSinceLastSend;
+        //public bool GotPacket = true; // Server will attempt to initiate the snapshot relaying
 
         public WorldSnapshot WorldSnapshot { get; }
         public ushort SnapshotId;
