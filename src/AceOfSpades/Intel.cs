@@ -23,6 +23,7 @@ namespace AceOfSpades
         public Team Team { get; }
         public NetCreatableInfo CreatableInfo { get; private set; }
         public Player Holder { get; private set; }
+        public Player LastHolder => lastHolder;
 
         public bool IsIconVisible
         {

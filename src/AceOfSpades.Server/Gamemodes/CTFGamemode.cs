@@ -205,33 +205,57 @@ namespace AceOfSpades.Server
 
                     if (player.HasIntel)
                     {
-                        Intel intel = player.Intel;
-                        intel.Return();
-                        player.DropIntel();
-
-                        string team = intel.Team == Team.A ? "Red" : "Blue";
-                        Screen.Chat(string.Format("The {0} intel has been captured!", team));
-
-                        NetworkPlayer netPlayer;
-                        if (NetPlayerComponent.TryGetPlayer(player.StateInfo.Owner, out netPlayer))
-                        {
-                            netPlayer.Score += SCORE_CAPTURE;
-
-                            Screen.AddFeedItem(netPlayer.Name, "", World.GetTeamColor(player.Team),
-                                "Captured", "Intel", World.GetTeamColor(player.Team == Team.A ? Team.B : Team.A));
-                        }
-
-                        if (player.Team == Team.A) teamAScore++;
-                        else teamBScore++;
-
-                        if (teamAScore < SCORE_CAP && teamBScore < SCORE_CAP)
-                            NetChannel.FireEventForAllConnections("Client_IntelCaptured", (byte)intel.Team);
-
-                        NetChannel.FireEventForAllConnections("Client_UpdateScores",
-                            (short)teamAScore, (short)teamBScore);
+                        CaptureIntel(player, player.Intel);
                     }
                 }
             }
+            else if (e.GameObject is Intel intel)
+            {
+                if (intel.Holder == null)
+                {
+                    CommandPost post = ((PhysicsBodyComponent)sender).GameObject as CommandPost;
+                    if (post.Team != intel.Team)
+                    {
+                        CaptureIntel(intel.LastHolder as ServerMPPlayer, intel);
+                    }
+                }
+            }
+        }
+
+        void CaptureIntel(ServerMPPlayer player, Intel intel)
+        {
+            intel.Return();
+            
+            string team = intel.Team == Team.A ? "Red" : "Blue";
+            Screen.Chat(string.Format("The {0} intel has been captured!", team));
+
+            if (player != null)
+            {
+                player.DropIntel();
+
+                NetworkPlayer netPlayer;
+                if (NetPlayerComponent.TryGetPlayer(player.StateInfo.Owner, out netPlayer))
+                {
+                    netPlayer.Score += SCORE_CAPTURE;
+
+                    Screen.AddFeedItem(netPlayer.Name, "", World.GetTeamColor(player.Team),
+                        "Captured", "Intel", World.GetTeamColor(player.Team == Team.A ? Team.B : Team.A));
+                }
+            }
+            else
+            {
+                Screen.AddFeedItem("?", null, World.GetTeamColor(intel.Team == Team.A ? Team.B : Team.A), 
+                    "Captured", "Intel", World.GetTeamColor(intel.Team));
+            }
+
+            if (intel.Team == Team.B) teamAScore++;
+            else teamBScore++;
+
+            if (teamAScore < SCORE_CAP && teamBScore < SCORE_CAP)
+                NetChannel.FireEventForAllConnections("Client_IntelCaptured", (byte)intel.Team);
+
+            NetChannel.FireEventForAllConnections("Client_UpdateScores",
+                (short)teamAScore, (short)teamBScore);
         }
 
         protected override void OnStopped()
