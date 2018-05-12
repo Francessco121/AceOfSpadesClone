@@ -41,7 +41,7 @@ namespace AceOfSpades.Editor.World
             area = new GUIArea(GUISystem);
             renderer.Sprites.Add(area);
 
-            Theme = EditorTheme.BasicEdtior;
+            Theme = EditorTheme.Glass;
 
             TranslateTerrainWindow transTerrainWindow;
 
