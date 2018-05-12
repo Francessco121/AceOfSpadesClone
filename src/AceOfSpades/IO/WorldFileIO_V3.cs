@@ -35,7 +35,7 @@ namespace AceOfSpades.IO
                         IndexPosition ipos = new IndexPosition(ix, iy, iz);
                         currentChunk = new Chunk(terrain, ipos, AceOfSpades.Terrain.ChunkToWorldCoords(ipos));
                         currentChunk.InitBlocks(Chunk.HSIZE, Chunk.VSIZE, Chunk.HSIZE);
-                        currentChunk.State = ChunkState.Unbuilt;
+                        currentChunk.State = ChunkState.Unlit;
                         currentChunk.IsDirty = true;
                         terrain.Chunks.TryAdd(ipos, currentChunk);
 

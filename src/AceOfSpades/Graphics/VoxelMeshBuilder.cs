@@ -21,6 +21,8 @@ namespace AceOfSpades.Graphics
         public List<Vector3> Normals { get; private set; }
         public List<uint> Indexes { get; private set; }
 
+        public ILightingContainer LightingContainer { get; set; }
+
         float[] cVertices;
         float[] cColors;
         float[] cNormals;
@@ -42,6 +44,7 @@ namespace AceOfSpades.Graphics
         {
             this.vo = vo;
             this.ao = ao;
+
             SetCubeSize(cubeSize);
 
             frontNormal = Vector3.UnitZ;
@@ -261,6 +264,32 @@ namespace AceOfSpades.Graphics
                 CalculateAOFor(block, blockIndex, v3, normal),
                 CalculateAOFor(block, blockIndex, v4, normal));
 
+            // Calculate world lighting
+            if (LightingContainer != null)
+            {
+                //float lighting1 = LightingAt(blockIndex.X, blockIndex.Y, blockIndex.Z, normal, v1);
+                //float lighting2 = LightingAt(blockIndex.X, blockIndex.Y, blockIndex.Z, normal, v2);
+                //float lighting3 = LightingAt(blockIndex.X, blockIndex.Y, blockIndex.Z, normal, v3);
+                //float lighting4 = LightingAt(blockIndex.X, blockIndex.Y, blockIndex.Z, normal, v4);
+
+                //// Blend by taking the darkest per vertex
+                //ao.X = Math.Max(ao.X, 1f - lighting1);
+                //ao.Y = Math.Max(ao.Y, 1f - lighting2);
+                //ao.Z = Math.Max(ao.Z, 1f - lighting3);
+                //ao.W = Math.Max(ao.W, 1f - lighting4);
+
+                int lightingBlockX = blockIndex.X + (int)normal.X;
+                int lightingBlockY = blockIndex.Y + (int)normal.Y;
+                int lightingBlockZ = blockIndex.Z + (int)normal.Z;
+
+                float lighting = 1f - LightingContainer.LightingAt(lightingBlockX, lightingBlockY, lightingBlockZ);
+
+                ao.X = Math.Max(ao.X, lighting);
+                ao.Y = Math.Max(ao.Y, lighting);
+                ao.Z = Math.Max(ao.Z, lighting);
+                ao.W = Math.Max(ao.W, lighting);
+            }
+
             // Apply the local offset of the quad
             v1 += offset;
             v2 += offset;
@@ -356,6 +385,70 @@ namespace AceOfSpades.Graphics
             else
                 // If one or two blocks are missing, half AO is applied
                 return (corner + side1 + side2 >= 1) ? (ao / 2f) : 0;
+        }
+
+        float LightingAt(int x, int y, int z, Vector3 normal, Vector3 vertexOffset)
+        {
+            if (LightingContainer == null)
+                return 1f;
+
+            int minx, maxx, miny, maxy, minz, maxz;
+
+            if (normal.X == 0)
+            {
+                int x1 = (int)vertexOffset.X;
+                minx = Math.Min(0, x1);
+                maxx = Math.Max(0, x1);
+            }
+            else
+                minx = maxx = (int)normal.X;
+
+            if (normal.Y == 0)
+            {
+                int y1 = (int)vertexOffset.Y;
+                miny = Math.Min(0, y1);
+                maxy = Math.Max(0, y1);
+            }
+            else
+                miny = maxy = (int)normal.Y;
+
+            if (normal.Z == 0)
+            {
+                int z1 = (int)vertexOffset.Z;
+                minz = Math.Min(0, z1);
+                maxz = Math.Max(0, z1);
+            }
+            else
+                minz = maxz = (int)normal.Z;
+
+            bool onlydiag = true;
+            int i = 0;
+            float lighting = 0;
+            float ligtingAtOrigin = 0;
+            for (int dx = minx; dx <= maxx; dx++)
+                for (int dy = miny; dy <= maxy; dy++)
+                    for (int dz = minz; dz <= maxz; dz++)
+                    {
+                        int nx = x + dx;
+                        int ny = y + dy;
+                        int nz = z + dz;
+
+                        if (vo.IsBlockTransparent(nx, ny, nz))
+                        {
+                            float deltaSum = Math.Abs(dx) + Math.Abs(dy) + Math.Abs(dz);
+                            float light = LightingContainer.LightingAt(nx, ny, nz);
+
+                            if (deltaSum == 2)
+                                onlydiag = false;
+                            else if (deltaSum == 1)
+                                ligtingAtOrigin = light;
+
+                            lighting += light;
+                            i++;
+                        }
+                    }
+
+            return onlydiag ? ligtingAtOrigin : lighting / i;
         }
 
         #region Add*()

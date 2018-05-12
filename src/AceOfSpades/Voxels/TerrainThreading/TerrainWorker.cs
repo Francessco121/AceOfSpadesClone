@@ -91,8 +91,12 @@ namespace AceOfSpades.TerrainThreading
                             }
                             else if (inst.Action == TerrainWorkerAction.Shape)
                             {
-
                                 inst.Chunk.ShapeTerrain();
+                                inst.Chunk.State = ChunkState.Unlit;
+                            }
+                            else if (inst.Action == TerrainWorkerAction.CalculateLighting)
+                            {
+                                inst.Chunk.CalculateLighting();
                                 inst.Chunk.State = ChunkState.Unbuilt;
                             }
                             else if (inst.Action == TerrainWorkerAction.BuildMesh)
@@ -103,6 +107,8 @@ namespace AceOfSpades.TerrainThreading
                             }
                             else
                                 throw new Exception("Terrain worker given unsupported action: " + inst.Action.ToString());
+
+                            inst.Chunk.BeingWorkedOn = false;
                         }
                         catch (Exception ex)
                         {

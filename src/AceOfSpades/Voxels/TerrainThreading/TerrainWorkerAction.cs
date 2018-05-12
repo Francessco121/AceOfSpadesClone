@@ -8,6 +8,7 @@ namespace AceOfSpades.TerrainThreading
     {
         Populate,
         Shape,
+        CalculateLighting,
         BuildMesh
     }
 }

@@ -149,6 +149,11 @@ namespace AceOfSpades
         }
         #endregion
 
+        public bool TryGetChunk(IndexPosition index, out Chunk chunk)
+        {
+            return Chunks.TryGetValue(index, out chunk);
+        }
+
         public bool IsChunkPopulated(IndexPosition pos)
         {
             Chunk chunk;

@@ -80,6 +80,8 @@
     <Compile Include="CyclicAudioSource.cs" />
     <Compile Include="Gamemode.cs" />
     <Compile Include="GamemodeType.cs" />
+    <Compile Include="Graphics\ChunkLightingContainer.cs" />
+    <Compile Include="Graphics\ILightingContainer.cs" />
     <Compile Include="Graphics\Renderers\VoxelRenderer.cs" />
     <Compile Include="Graphics\VoxelRenderComponent.cs" />
     <Compile Include="Graphics\IconRenderer.cs" />

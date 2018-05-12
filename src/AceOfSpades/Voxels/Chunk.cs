@@ -18,9 +18,10 @@ namespace AceOfSpades
     {
         Unpopulated = 0,
         Unshaped = 1,
-        Unbuilt = 2,
-        MeshReady = 3,
-        Renderable = 4
+        Unlit = 2,
+        Unbuilt = 3,
+        MeshReady = 4,
+        Renderable = 5
     }
 
     public class Chunk : VoxelObject
@@ -80,6 +81,7 @@ namespace AceOfSpades
         public bool IsEmpty { get; set; }
         public bool IsDirty;
         public bool Culled;
+        public ChunkLightingContainer Lighting { get; private set; }
 
         static Perlin p = new Perlin();
 
@@ -101,6 +103,8 @@ namespace AceOfSpades
             Position = worldPosition;
             IndexPosition = indexPosition;
 
+            Lighting = new ChunkLightingContainer(this, terrain);
+
             blockWorldOffset = IndexPosition * SIZE;
             BoundingBox = new AxisAlignedBoundingBox(Position, Position + UNIT_SIZE);
             IsEmpty = true;
@@ -109,6 +113,9 @@ namespace AceOfSpades
             {
                 frontMeshBuilder.SetupForDynamic(128);
                 backMeshBuilder.SetupForDynamic(128);
+
+                frontMeshBuilder.LightingContainer = Lighting;
+                backMeshBuilder.LightingContainer = Lighting;
             }
         }
 
@@ -121,6 +128,30 @@ namespace AceOfSpades
         public Block this[IndexPosition index]
         {
             get { return Blocks[index.Z, index.Y, index.X]; }
+        }
+
+        public bool IsBlockAt(int x, int y, int z)
+        {
+            if (x < 0 || y < 0 || z < 0 || x >= HSIZE || y >= VSIZE || z >= HSIZE)
+            {
+                int dx = (int)Math.Floor((float)x / HSIZE);
+                int dy = (int)Math.Floor((float)y / VSIZE);
+                int dz = (int)Math.Floor((float)z / HSIZE);
+
+                Chunk otherChunk;
+                if (terrain.TryGetChunk(IndexPosition + new IndexPosition(dx, dy, dz), out otherChunk))
+                {
+                    int bx = x < 0 ? x + HSIZE : x % HSIZE;
+                    int by = y < 0 ? y + VSIZE : y % VSIZE;
+                    int bz = z < 0 ? z + HSIZE : z % HSIZE;
+
+                    return otherChunk.Blocks[bz, by, bx].Material != Block.AIR.Material;
+                }
+                else
+                    return false;
+            }
+            else
+                return Blocks[z, y, x].Material != Block.AIR.Material;
         }
 
         public void BlockDirtyAt(IndexPosition at, bool carryToOtherChunks)
@@ -163,6 +194,8 @@ namespace AceOfSpades
             if (terrain.LockBottomLayer && IndexPosition.Y == 0 && at.Y == 0)
                 return;
 
+            Lighting.RequestSunlightRefill(at.X, at.Y, at.Z);
+
             Blocks[at.Z, at.Y, at.X] = Block.AIR;
             BlockDirtyAt(at, true);
             terrain.AddChange(this, Block.AIR, at);
@@ -174,7 +207,9 @@ namespace AceOfSpades
 
             if (terrain.LockBottomLayer && IndexPosition.Y == 0 && at.Y == 0)
                 return before;
-            
+
+            Lighting.RequestSunlightRemoval(at.X, at.Y, at.Z);
+
             Blocks[at.Z, at.Y, at.X] = block;
             BlockDirtyAt(at, true);
             terrain.AddChange(this, block, at);
@@ -380,6 +415,11 @@ namespace AceOfSpades
             //        }
             //    }
             //}
+        }
+
+        public void CalculateLighting()
+        {
+            Lighting.Process();
         }
 
         public void ShapeTerrain()

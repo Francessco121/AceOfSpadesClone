@@ -361,7 +361,7 @@ namespace AceOfSpades.Client.Net
                     IndexPosition ipos = new IndexPosition(ix, iy, iz);
                     currentChunk = new Chunk(Terrain, ipos, AceOfSpades.Terrain.ChunkToWorldCoords(ipos));
                     currentChunk.InitBlocks(Chunk.HSIZE, Chunk.VSIZE, Chunk.HSIZE);
-                    currentChunk.State = ChunkState.Unbuilt;
+                    currentChunk.State = ChunkState.Unlit;
                     currentChunk.IsDirty = true;
                     Terrain.Chunks.TryAdd(ipos, currentChunk);
 

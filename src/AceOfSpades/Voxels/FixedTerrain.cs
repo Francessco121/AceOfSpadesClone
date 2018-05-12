@@ -157,13 +157,21 @@ namespace AceOfSpades
             // Find the first worker that isnt busy, or the worker with the smallest 
             // work count and add the action to it's queue.
             TerrainWorker worker = null;
-            for (int i = 0; i < workers.Length; i++)
+
+            if (action != TerrainWorkerAction.CalculateLighting)
             {
-                TerrainWorker _worker = workers[i];
-                if (!_worker.IsBusy && (worker == null || _worker.WorkCount < worker.WorkCount))
-                    worker = _worker;
-                else if (i == workers.Length - 1 && worker == null)
-                    worker = _worker;
+                for (int i = 0; i < workers.Length; i++)
+                {
+                    TerrainWorker _worker = workers[i];
+                    if (!_worker.IsBusy && (worker == null || _worker.WorkCount < worker.WorkCount))
+                        worker = _worker;
+                    else if (i == workers.Length - 1 && worker == null)
+                        worker = _worker;
+                }
+            }
+            else
+            {
+                worker = workers[workers.Length - 1];
             }
 
             worker.Enqueue(chunk, action);
@@ -224,6 +232,17 @@ namespace AceOfSpades
             }
         }
 
+        void CalculateChunkLighting()
+        {
+            if (GlobalNetwork.IsServer)
+                return;
+
+            foreach (Chunk chunk in Chunks.Values)
+            {
+                workers[workers.Length - 1].Enqueue(chunk, TerrainWorkerAction.CalculateLighting);
+            }
+        }
+
         bool IsWorkersDone()
         {
             for (int i = 0; i < workers.Length; i++)
@@ -246,6 +265,11 @@ namespace AceOfSpades
                         ShapeChunks();
                     }
                     else if (currentPreAction == TerrainWorkerAction.Shape && !GlobalNetwork.IsServer)
+                    {
+                        currentPreAction = TerrainWorkerAction.CalculateLighting;
+                        CalculateChunkLighting();
+                    }
+                    else if (currentPreAction == TerrainWorkerAction.CalculateLighting && !GlobalNetwork.IsServer)
                     {
                         currentPreAction = TerrainWorkerAction.BuildMesh;
                         BuildChunkMeshes();
@@ -279,10 +303,23 @@ namespace AceOfSpades
                     applyWorkTime = applyWorkDelay;
                     foreach (Chunk chunk in Chunks.Values)
                     {
-                        if (!chunk.BeingWorkedOn && chunk.IsDirty)
+                        if (!chunk.BeingWorkedOn && (chunk.IsDirty || chunk.Lighting.IsDirty))
                         {
-                            chunk.State = ChunkState.Unbuilt;
-                            AllocateWork(chunk, TerrainWorkerAction.BuildMesh);
+                            if (chunk.State == ChunkState.Renderable || chunk.Lighting.IsDirty)
+                                chunk.State = ChunkState.Unlit;
+
+                            if (chunk.State == ChunkState.Unlit)
+                            {
+                                chunk.IsDirty = true;
+
+                                //if (chunk.Lighting.CanProcess())
+                                    AllocateWork(chunk, TerrainWorkerAction.CalculateLighting);
+                            }
+                            else if (chunk.State == ChunkState.Unbuilt)
+                            {
+                                if (chunk.Lighting.IsMeshReady())
+                                    AllocateWork(chunk, TerrainWorkerAction.BuildMesh);
+                            }
                         }
                     }
                 }
