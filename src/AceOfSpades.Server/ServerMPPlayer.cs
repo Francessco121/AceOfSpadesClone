@@ -63,6 +63,9 @@ namespace AceOfSpades.Server
 
         Vector3Anim movementAnim;
 
+        bool reloaded = false;
+        bool jumped = false;
+
         public ServerMPPlayer(World world, Vector3 position, Team team)
              : base(null, world, new SimpleCamera(), position, team)
         {
@@ -144,8 +147,14 @@ namespace AceOfSpades.Server
                 camera.Yaw = ClientSnapshot.CamYaw;
                 camera.Pitch = ClientSnapshot.CamPitch;
 
+                Gun gun = ItemManager.SelectedItem as Gun;
+                bool reloadingBefore = gun != null && gun.IsReloading;
+
                 // Update item in hand 
                 ItemManager.Update(false, false, false, false, ClientSnapshot.Reload, deltaTime);
+
+                if (gun != null && gun.IsReloading && !reloadingBefore)
+                    reloaded = true;
 
                 // Only process bullets if the player is alive
                 if (Health > 0)
@@ -288,6 +297,8 @@ namespace AceOfSpades.Server
 
         public void OnServerInbound()
         {
+            jumped = jumped || ClientSnapshot.Jump;
+
             // Equip the weapon the client has equipped
             ItemManager.Equip(ClientSnapshot.SelectedItem);
 
@@ -307,13 +318,6 @@ namespace AceOfSpades.Server
             }
 
             snapshot.NetId = StateInfo.Id;
-
-            snapshot.X = Transform.Position.X;
-            snapshot.Y = Transform.Position.Y;
-            snapshot.Z = Transform.Position.Z;
-
-            snapshot.IsCrouching = ClientSnapshot.IsCrouching; 
-            snapshot.IsFlashlightOn = ClientSnapshot.IsFlashlightVisible;
 
             snapshot.SelectedItem = (byte)ItemManager.SelectedItemIndex;
 
@@ -337,6 +341,20 @@ namespace AceOfSpades.Server
             else
             {
                 // Replicated-only data
+                snapshot.X = Transform.Position.X;
+                snapshot.Y = Transform.Position.Y;
+                snapshot.Z = Transform.Position.Z;
+
+                snapshot.IsFlashlightOn = ClientSnapshot.IsFlashlightVisible;
+                snapshot.IsReloading = reloaded;
+
+                snapshot.IsCrouching = ClientSnapshot.IsCrouching;
+                snapshot.IsSprinting = ClientSnapshot.IsSprinting;
+                snapshot.IsMoving = ClientSnapshot.IsMoving;
+                snapshot.IsAiming = ClientSnapshot.IsAiming;
+                snapshot.IsGrounded = ClientSnapshot.IsGrounded;
+                snapshot.IsJumping = jumped;
+
                 snapshot.CamYaw = ClientSnapshot.CamYaw;
                 snapshot.CamPitch = ClientSnapshot.CamPitch;
 
@@ -347,6 +365,8 @@ namespace AceOfSpades.Server
         public void OnPostServerOutbound()
         {
             ItemManager.MuzzleFlashIterations = 0;
+            reloaded = false;
+            jumped = false;
         }
     }
 }

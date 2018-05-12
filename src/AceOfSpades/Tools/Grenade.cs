@@ -1,8 +1,6 @@
-﻿using AceOfSpades.Graphics;
-using AceOfSpades.Net;
+﻿using AceOfSpades.Net;
 using Dash.Engine;
 using Dash.Engine.Audio;
-using Dash.Engine.Diagnostics;
 using Dash.Engine.Graphics;
 
 /* Grenade.cs
@@ -25,9 +23,14 @@ namespace AceOfSpades.Tools
             {
                 if (!itemManager.IsReplicated)
                 {
-                    throwAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Throw.wav"));
-                    throwAudioSource.IsSourceRelative = true;
-                    throwAudioSource.Gain = 0.2f;
+                    AudioBuffer throwAudioBuffer = AssetManager.LoadSound("Weapons/Grenade/throw.wav");
+
+                    if (throwAudioBuffer != null)
+                    {
+                        throwAudioSource = new AudioSource(throwAudioBuffer);
+                        throwAudioSource.IsSourceRelative = true;
+                        throwAudioSource.Gain = 0.2f;
+                    }
                 }
             }
         }

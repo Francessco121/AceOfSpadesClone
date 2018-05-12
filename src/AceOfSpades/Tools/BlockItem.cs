@@ -1,6 +1,7 @@
 ﻿using AceOfSpades.Graphics;
 using AceOfSpades.Net;
 using Dash.Engine;
+using Dash.Engine.Audio;
 using Dash.Engine.Graphics;
 using Dash.Engine.Physics;
 using System;
@@ -35,6 +36,8 @@ namespace AceOfSpades.Tools
 
         PhysicsBodyComponent ownerPlayerPhysicsBody;
         EntityRenderer entRenderer;
+
+        readonly AudioSource buildAudioSource;
 
         public BlockItem(ItemManager itemManager, MasterRenderer renderer) 
             : base(itemManager, ItemType.BlockItem)
@@ -83,6 +86,18 @@ namespace AceOfSpades.Tools
                     }
 
                 BlockColor = Colors[ColorY, ColorX];
+
+                if (!itemManager.IsReplicated)
+                {
+                    AudioBuffer buildAudioBuffer = AssetManager.LoadSound("Weapons/Block/build.wav");
+
+                    if (buildAudioBuffer != null)
+                    {
+                        buildAudioSource = new AudioSource(buildAudioBuffer);
+                        buildAudioSource.IsSourceRelative = true;
+                        buildAudioSource.Gain = 0.5f;
+                    }
+                }
             }
         }
 
@@ -129,6 +144,8 @@ namespace AceOfSpades.Tools
                 {
                     if (IsBlockPlacementSafe(ipos, newChunkPos))
                     {
+                        buildAudioSource?.Play();
+
                         Block block = new Block(Block.CUSTOM.Data, BlockColor.R,
                                 BlockColor.G, BlockColor.B);
 
@@ -223,6 +240,8 @@ namespace AceOfSpades.Tools
 
                         if (mouseOverBlock)
                         {
+                            buildAudioSource?.Play();
+
                             Vector3 startWorld = startGlobalPosition * Block.CUBE_3D_SIZE;
                             Vector3 endWorld = endGlobalPosition * Block.CUBE_3D_SIZE;
                             Ray ray = new Ray(startWorld, endWorld - startWorld);
@@ -433,6 +452,16 @@ namespace AceOfSpades.Tools
         {
             if (primaryCooldown <= 0.1f)
                 base.Draw();
+        }
+
+        public override void Dispose()
+        {
+            if (!IsDisposed)
+            {
+                buildAudioSource?.Dispose();
+            }
+
+            base.Dispose();
         }
     }
 }

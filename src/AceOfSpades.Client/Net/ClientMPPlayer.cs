@@ -18,7 +18,16 @@ namespace AceOfSpades.Client.Net
         SimpleCamera camera;
         CameraFX camfx;
 
+        bool lastGrounded = true;
+        bool jumped = false;
+        bool isDisposed;
+
         readonly AudioSource hitAudioSource;
+        readonly AudioSource flashlightAudioSource;
+        readonly AudioSource jumpAudioSource;
+        readonly AudioSource landAudioSource;
+        readonly CyclicAudioSource walkingAudioSource;
+        readonly CyclicAudioSource runningAudioSource;
 
         public ClientMPPlayer(MasterRenderer renderer, World world, Camera camera, Vector3 position, Team team)
             : base(renderer, world, camera, position, team)
@@ -38,9 +47,44 @@ namespace AceOfSpades.Client.Net
 
             CreateStarterBackpack();
 
-            hitAudioSource = new AudioSource(AssetManager.LoadSound("Impacts/FleshLocal.wav"));
-            hitAudioSource.IsSourceRelative = true;
-            hitAudioSource.Gain = 0.2f;
+            AudioBuffer hitAudioBuffer = AssetManager.LoadSound("Impacts/hit-player-local.wav");
+
+            if (hitAudioBuffer != null)
+            {
+                hitAudioSource = new AudioSource(hitAudioBuffer);
+                hitAudioSource.IsSourceRelative = true;
+                hitAudioSource.Gain = 0.2f;
+            }
+
+            AudioBuffer flashlightAudioBuffer = AssetManager.LoadSound("Player/flashlight.wav");
+
+            if (flashlightAudioBuffer != null)
+            {
+                flashlightAudioSource = new AudioSource(flashlightAudioBuffer);
+                flashlightAudioSource.IsSourceRelative = true;
+                flashlightAudioSource.Gain = 0.2f;
+            }
+
+            AudioBuffer jumpAudioBuffer = AssetManager.LoadSound("Player/jump.wav");
+
+            if (jumpAudioBuffer != null)
+            {
+                jumpAudioSource = new AudioSource(jumpAudioBuffer);
+                jumpAudioSource.IsSourceRelative = true;
+                jumpAudioSource.Gain = 0.2f;
+            }
+
+            AudioBuffer landAudioBuffer = AssetManager.LoadSound("Player/land.wav");
+
+            if (landAudioBuffer != null)
+            {
+                landAudioSource = new AudioSource(landAudioBuffer);
+                landAudioSource.IsSourceRelative = true;
+                landAudioSource.Gain = 0.2f;
+            }
+
+            walkingAudioSource = new CyclicAudioSource("Player/footstep.wav", 8, 0f);
+            runningAudioSource = new CyclicAudioSource("Player/run.wav", 12, 0f);
         }
 
         public void OnKilled()
@@ -113,8 +157,26 @@ namespace AceOfSpades.Client.Net
                 if (AllowUserInput)
                 {
                     if (Input.GetControlDown("ToggleFlashlight"))
+                    {
                         flashlight.Visible = !flashlight.Visible;
+                        flashlightAudioSource?.Play();
+                    }
                 }
+
+                // Handle landing
+                if (CharacterController.IsGrounded && !lastGrounded)
+                {
+                    landAudioSource?.Play();
+                }
+
+                // Handle walking/running
+                walkingAudioSource.IsPlaying = CharacterController.IsGrounded && CharacterController.IsMoving && !IsSprinting;
+                walkingAudioSource.IterationLength = (1f / Viewbob.GetSpeed()) * 2f;
+                walkingAudioSource.Update(deltaTime);
+
+                runningAudioSource.IsPlaying = CharacterController.IsGrounded && CharacterController.IsMoving && IsSprinting;
+                runningAudioSource.IterationLength = (1f / Viewbob.GetSpeed()) * 2f;
+                runningAudioSource.Update(deltaTime);
 
                 // Update viewbob
                 Viewbob.Update(deltaTime);
@@ -138,10 +200,16 @@ namespace AceOfSpades.Client.Net
                 ClientSnapshot.CamYaw = camera.Yaw;
                 ClientSnapshot.CamPitch = camera.Pitch;
 
-                ClientSnapshot.IsCrouching = CharacterController.IsCrouching;
                 ClientSnapshot.IsFlashlightVisible = flashlight.Visible;
                 ClientSnapshot.Reload = inputReload || ClientSnapshot.Reload;
                 ClientSnapshot.DropIntel = inputDropIntel || ClientSnapshot.DropIntel;
+
+                ClientSnapshot.IsCrouching = CharacterController.IsCrouching;
+                ClientSnapshot.IsSprinting = IsSprinting;
+                ClientSnapshot.IsMoving = CharacterController.IsMoving;
+                ClientSnapshot.IsAiming = IsAiming;
+                ClientSnapshot.IsGrounded = CharacterController.IsGrounded;
+                ClientSnapshot.Jump = jumped || ClientSnapshot.Jump;
 
                 ClientSnapshot.SelectedItem = (byte)ItemManager.SelectedItemIndex;
 
@@ -153,7 +221,18 @@ namespace AceOfSpades.Client.Net
                 }
             }
 
+            lastGrounded = CharacterController.IsGrounded;
+            jumped = false;
+
             base.Update(deltaTime);
+        }
+
+        protected override void OnJump()
+        {
+            jumpAudioSource?.Play();
+            jumped = true;
+
+            base.OnJump();
         }
 
         protected override void Draw()
@@ -202,7 +281,7 @@ namespace AceOfSpades.Client.Net
 
             if (HitFeedbackPositions.Count > 0)
             {
-                hitAudioSource.Play();
+                hitAudioSource?.Play();
 
                 if (!camfx.IsShaking)
                     camfx.ShakeCamera(0.2f, 0.05f);
@@ -212,5 +291,22 @@ namespace AceOfSpades.Client.Net
         public void OnClientOutbound(float rtt) { }
 
         public void OnPostClientOutbound() { }
+
+        public override void Dispose()
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+
+                hitAudioSource?.Dispose();
+                flashlightAudioSource?.Dispose();
+                jumpAudioSource?.Dispose();
+                landAudioSource?.Dispose();
+                walkingAudioSource.Dispose();
+                runningAudioSource.Dispose();
+            }
+
+            base.Dispose();
+        }
     }
 }

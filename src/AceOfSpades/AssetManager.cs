@@ -113,6 +113,9 @@ namespace AceOfSpades
                 return buffer;
             else
             {
+                if (!File.Exists(filePath))
+                    return null;
+
                 string ext = Path.GetExtension(filePath);
 
                 switch (ext)

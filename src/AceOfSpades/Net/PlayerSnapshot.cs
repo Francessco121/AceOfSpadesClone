@@ -35,8 +35,15 @@ namespace AceOfSpades.Net
             set { z.Value = value; }
         }
 
-        public bool IsCrouching { get; set; }
         public bool IsFlashlightOn { get; set; }
+        public bool IsReloading { get; set; }
+
+        public bool IsCrouching { get; set; }
+        public bool IsSprinting { get; set; }
+        public bool IsMoving { get; set; }
+        public bool IsAiming { get; set; }
+        public bool IsGrounded { get; set; }
+        public bool IsJumping { get; set; }
 
         public float CamYaw
         {
@@ -113,7 +120,9 @@ namespace AceOfSpades.Net
         SnapshotField camYaw;
         SnapshotField camPitch;
         SnapshotField selectedItem;
+
         SnapshotField stateFlag;
+        SnapshotField movementFlag;
 
         SnapshotField health;
         SnapshotField numBlocks;
@@ -136,27 +145,35 @@ namespace AceOfSpades.Net
 
             netId = AddPrimitiveField(id);
 
-            x = AddPrimitiveField<float>();
-            y = AddPrimitiveField<float>();
-            z = AddPrimitiveField<float>();
-
-            stateFlag = AddPrimitiveField<ByteFlag>();
-
             selectedItem = AddPrimitiveField<byte>();
 
             if (isOwner)
             {
                 currentMag = AddPrimitiveField<byte>();
                 storedAmmo = AddPrimitiveField<ushort>();
+
                 health = AddPrimitiveField<float>();
+
                 numBlocks = AddPrimitiveField<ushort>();
                 numGrenades = AddPrimitiveField<byte>();
                 numMelons = AddPrimitiveField<byte>();
+
                 AddCustomField(HitFeedbackSnapshot = new HitFeedbackSnapshot());
+
                 hitEnemy = (Trigger)AddTrigger().Value;
             }
             else
             {
+                x = AddPrimitiveField<float>();
+                y = AddPrimitiveField<float>();
+                z = AddPrimitiveField<float>();
+
+                stateFlag = AddPrimitiveField<ByteFlag>();
+                stateFlag.NeverCompress = true;
+
+                movementFlag = AddPrimitiveField<ByteFlag>();
+                movementFlag.NeverCompress = true;
+
                 camYaw = AddPrimitiveField<float>();
                 camPitch = AddPrimitiveField<float>();
 
@@ -174,11 +191,28 @@ namespace AceOfSpades.Net
 
         public override void Serialize(NetBuffer buffer)
         {
-            ByteFlag stateFlag = new ByteFlag();
-            stateFlag.Set(0, IsCrouching);
-            stateFlag.Set(1, IsFlashlightOn);
+            if (this.stateFlag != null)
+            {
+                ByteFlag stateFlag = new ByteFlag();
+                stateFlag.Set(0, IsFlashlightOn);
+                stateFlag.Set(1, IsReloading);
 
-            this.stateFlag.Value = stateFlag;
+                this.stateFlag.Value = stateFlag;
+            }
+
+            if (this.movementFlag != null)
+            {
+                ByteFlag movementFlag = new ByteFlag();
+
+                movementFlag.Set(0, IsCrouching);
+                movementFlag.Set(1, IsSprinting);
+                movementFlag.Set(2, IsMoving);
+                movementFlag.Set(3, IsAiming);
+                movementFlag.Set(4, IsGrounded);
+                movementFlag.Set(5, IsJumping);
+
+                this.movementFlag.Value = movementFlag;
+            }
 
             base.Serialize(buffer);
         }
@@ -187,13 +221,30 @@ namespace AceOfSpades.Net
         {
             base.Deserialize(buffer);
 
-            ByteFlag stateFlag = (ByteFlag)this.stateFlag.Value;
-            IsCrouching = stateFlag.Get(0);
-            IsFlashlightOn = stateFlag.Get(1);
+            if (this.stateFlag != null)
+            {
+                ByteFlag stateFlag = (ByteFlag)this.stateFlag.Value;
+                IsFlashlightOn = stateFlag.Get(0);
+                IsReloading = stateFlag.Get(1);
+            }
+
+            if (this.movementFlag != null)
+            {
+                ByteFlag movementFlag = (ByteFlag)this.movementFlag.Value;
+
+                IsCrouching = movementFlag.Get(0);
+                IsSprinting = movementFlag.Get(1);
+                IsMoving = movementFlag.Get(2);
+                IsAiming = movementFlag.Get(3);
+                IsGrounded = movementFlag.Get(4);
+                IsJumping = movementFlag.Get(5);
+            }
 
             if (NetId != initId)
+            {
                 throw new Exception(string.Format(
                     "PlayerSnapshot id mismatch! Server had different id than client! (NetId, initId) {0} != {1}", NetId, initId));
+            }
         }
     }
 }

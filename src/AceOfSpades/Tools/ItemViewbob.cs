@@ -21,10 +21,10 @@ namespace AceOfSpades.Tools
         const float DISTMOD_WALK = 0.2f;
         const float DISTMOD_CROUCH = 0.8f;
 
-        const float SPEED_NORMAL = 5.5f;
-        const float SPEED_WALK = 3.25f;
-        const float SPEED_SPRINT = 7f;
-        const float SPEED_CROUCH = 3f;
+        public const float SPEED_NORMAL = 5.5f;
+        public const float SPEED_WALK = 3.25f;
+        public const float SPEED_SPRINT = 7f;
+        public const float SPEED_CROUCH = 3f;
 
         const float SPRINT_TILT_YAW = 60;
         const float SPRINT_TILT_PITCH = 40;
@@ -116,7 +116,7 @@ namespace AceOfSpades.Tools
                 return DISTMOD_NORMAL;
         }
 
-        float GetSpeed()
+        public float GetSpeed()
         {
             if (player.IsAiming)
                 return SPEED_WALK;

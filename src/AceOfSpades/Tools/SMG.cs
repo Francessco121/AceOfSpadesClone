@@ -39,16 +39,22 @@ namespace AceOfSpades.Tools
                 ReloadTime = 3f,
                 PrimaryFireAudio = new GunAudioConfig
                 {
-                    LocalFilepath = "Weapons/SMG/FireLocal.wav",
+                    LocalFilepath = "Weapons/SMG/fire-local.wav",
                     LocalGain = 0.075f,
-                    ReplicatedFilepath = "Weapons/SMG/Fire.wav",
+                    ReplicatedFilepath = "Weapons/SMG/fire.wav",
+                    FarFilepath = "Weapons/SMG/fire-far.wav",
                     ReplicatedGain = 0.15f,
-                    MaxDistance = 600
+                    NearMaxDistance = 500f,
+                    FarMinDistance = 500f,
+                    FarMaxDistance = 700f
                 },
                 ReloadAudio = new GunAudioConfig
                 {
-                    LocalFilepath = "Weapons/SMG/ReloadLocal.wav",
-                    LocalGain = 0.2f
+                    LocalFilepath = "Weapons/SMG/reload-local.wav",
+                    LocalGain = 0.2f,
+                    ReplicatedFilepath = "Weapons/SMG/reload.wav",
+                    ReplicatedGain = 0.3f,
+                    NearMaxDistance = 50f
                 }
             };
         }

@@ -40,9 +40,12 @@ namespace AceOfSpades.Tools
                 ReloadTime = 3f,
                 PrimaryFireAudio = new GunAudioConfig
                 {
-                    LocalFilepath = "Weapons/Shotgun/FireLocal.wav",
-                    ReplicatedFilepath = "Weapons/Shotgun/Fire.wav",
-                    MaxDistance = 500,
+                    LocalFilepath = "Weapons/Shotgun/fire-local.wav",
+                    ReplicatedFilepath = "Weapons/Shotgun/fire.wav",
+                    FarFilepath = "Weapons/Shotgun/fire-far.wav",
+                    NearMaxDistance = 500f,
+                    FarMinDistance = 500f,
+                    FarMaxDistance = 800f,
                     LocalGain = 0.2f,
                     ReplicatedGain = 0.3f
                 }

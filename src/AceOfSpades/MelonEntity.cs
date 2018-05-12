@@ -55,12 +55,17 @@ namespace AceOfSpades
 
                 if (!GlobalNetwork.IsServer)
                 {
-                    AudioSource explodeAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Explode.wav"));
-                    explodeAudioSource.MaxDistance = 1000;
-                    explodeAudioSource.Position = Transform.Position;
-                    explodeAudioSource.Pitch = 0.5f;
+                    AudioBuffer explodeBuffer = AssetManager.LoadSound("Weapons/Grenade/Explode.wav");
 
-                    world.PlayWorldAudio(new WorldAudioSource(explodeAudioSource));
+                    if (explodeBuffer != null)
+                    {
+                        AudioSource explodeAudioSource = new AudioSource(explodeBuffer);
+                        explodeAudioSource.MaxDistance = 1000;
+                        explodeAudioSource.Position = Transform.Position;
+                        explodeAudioSource.Pitch = 0.5f;
+
+                        world.PlayWorldAudio(new WorldAudioSource(explodeAudioSource));
+                    }
                 }
 
                 Dispose();

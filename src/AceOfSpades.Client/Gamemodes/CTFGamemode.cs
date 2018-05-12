@@ -2,6 +2,7 @@
 using AceOfSpades.Client.Net;
 using AceOfSpades.Net;
 using Dash.Engine;
+using Dash.Engine.Audio;
 using Dash.Engine.Diagnostics;
 using Dash.Net;
 
@@ -16,6 +17,8 @@ namespace AceOfSpades.Client
 
         CommandPost redPost, bluePost;
         Intel redIntel, blueIntel;
+
+        AudioSource intelAudioSource;
 
         public CTFGamemode(MultiplayerScreen screen)
             : base(screen, GamemodeType.CTF)
@@ -32,6 +35,15 @@ namespace AceOfSpades.Client
 
             objectComponent.AddInstantiationEvent("Client_CreateIntel", I_CreateIntel);
             objectComponent.AddInstantiationEvent("Client_CreateCommandPost", I_CreateCommandPost);
+
+            AudioBuffer intelAudioBuffer = AssetManager.LoadSound("UI/intel.wav");
+
+            if (intelAudioBuffer != null)
+            {
+                intelAudioSource = new AudioSource(intelAudioBuffer);
+                intelAudioSource.IsSourceRelative = true;
+                intelAudioSource.Gain = 0.4f;
+            }
 
             base.OnStarted();
         }
@@ -59,6 +71,8 @@ namespace AceOfSpades.Client
 
             OurPlayerHasIntel = false;
 
+            intelAudioSource?.Dispose();
+
             base.OnStopped();
         }
 
@@ -73,6 +87,8 @@ namespace AceOfSpades.Client
 
             string teamStr = team == Team.A ? "Red" : "Blue";
             Screen.ShowAnnouncement(string.Format("The {0} intel has been returned to their base!", teamStr), 5f, false);
+
+            intelAudioSource?.Play();
         }
 
         void R_IntelCaptured(NetConnection server, NetBuffer data, ushort numArgs)
@@ -93,6 +109,8 @@ namespace AceOfSpades.Client
 
             string teamStr = team == Team.A ? "Red" : "Blue";
             Screen.ShowAnnouncement(string.Format("The {0} intel has been captured!", teamStr), 5f, false);
+
+            intelAudioSource?.Play();
         }
 
         void R_IntelPickedUp(NetConnection server, NetBuffer data, ushort numArgs)
@@ -132,6 +150,8 @@ namespace AceOfSpades.Client
                 string teamStr = team == Team.A ? "Red" : "Blue";
                 Screen.ShowAnnouncement(string.Format("The {0} intel has been picked up!", teamStr), 5f, false);
             }
+
+            intelAudioSource?.Play();
         }
 
         void R_IntelDropped(NetConnection server, NetBuffer data, ushort numArgs)
@@ -152,6 +172,8 @@ namespace AceOfSpades.Client
 
             string teamStr = team == Team.A ? "Red" : "Blue";
             Screen.ShowAnnouncement(string.Format("The {0} intel has been dropped!", teamStr), 5f, false);
+
+            intelAudioSource?.Play();
         }
 
         INetCreatable I_CreateCommandPost(ushort id, bool isAppOwner, NetBuffer data)

@@ -145,6 +145,8 @@ namespace AceOfSpades.Characters
             return camera;
         }
 
+        protected virtual void OnJump() { }
+
         protected void UpdateMoveVector(Vector3 inputMove, bool tryJump, bool sprint, bool walk, float speedMultiplier = 1f)
         {
             // Update strafing properties
@@ -171,7 +173,10 @@ namespace AceOfSpades.Characters
 
             // Apply jump power if player is grounded
             if (tryJump && CharacterController.IsGrounded)
+            {
                 inputMove.Y = JUMP_POWER;
+                OnJump();
+            }
 
             return inputMove;
         }

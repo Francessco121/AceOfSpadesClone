@@ -38,10 +38,15 @@ namespace AceOfSpades.Tools
             {
                 if (!itemManager.IsReplicated)
                 {
-                    throwAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Throw.wav"));
-                    throwAudioSource.IsSourceRelative = true;
-                    throwAudioSource.Pitch = 1.5f;
-                    throwAudioSource.Gain = 0.2f;
+                    AudioBuffer throwAudioBuffer = AssetManager.LoadSound("Weapons/Grenade/throw.wav");
+
+                    if (throwAudioBuffer != null)
+                    {
+                        throwAudioSource = new AudioSource(throwAudioBuffer);
+                        throwAudioSource.IsSourceRelative = true;
+                        throwAudioSource.Pitch = 1.5f;
+                        throwAudioSource.Gain = 0.2f;
+                    }
                 }
             }
         }

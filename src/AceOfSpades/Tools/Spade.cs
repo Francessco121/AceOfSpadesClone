@@ -1,6 +1,7 @@
 ﻿using AceOfSpades.Graphics;
 using AceOfSpades.Net;
 using Dash.Engine;
+using Dash.Engine.Audio;
 using Dash.Engine.Graphics;
 
 /* Spade.cs
@@ -23,6 +24,9 @@ namespace AceOfSpades.Tools
         IndexPosition globalMousePosition;
         bool mouseOverBlock;
 
+        readonly AudioSource hitBlockAudioSource;
+        readonly AudioSource missAudioSource;
+
         public Spade(ItemManager itemManager, MasterRenderer renderer) 
             : base(renderer, itemManager, ItemType.Spade)
         {
@@ -39,6 +43,27 @@ namespace AceOfSpades.Tools
                     cursorCube.RenderAsWireframe = true;
                     cursorCube.ApplyNoLighting = true;
                     cursorCube.OnlyRenderFor = RenderPass.Normal;
+                }
+
+                if (!itemManager.IsReplicated)
+                {
+                    AudioBuffer hitBlockAudioBuffer = AssetManager.LoadSound("Weapons/Spade/hit-block.wav");
+
+                    if (hitBlockAudioBuffer != null)
+                    {
+                        hitBlockAudioSource = new AudioSource(hitBlockAudioBuffer);
+                        hitBlockAudioSource.IsSourceRelative = true;
+                        hitBlockAudioSource.Gain = 0.2f;
+                    }
+
+                    AudioBuffer missAudioBuffer = AssetManager.LoadSound("Weapons/Spade/miss.wav");
+
+                    if (missAudioBuffer != null)
+                    {
+                        missAudioSource = new AudioSource(missAudioBuffer);
+                        missAudioSource.IsSourceRelative = true;
+                        missAudioSource.Gain = 0.5f;
+                    }
                 }
             }
         }
@@ -60,12 +85,14 @@ namespace AceOfSpades.Tools
                     Vector3.Zero, 0, PLAYER_DAMAGE, MODIFY_RANGE);
             }
             
-            if (GlobalNetwork.IsServer || !GlobalNetwork.IsConnected)
-            {
-                TerrainRaycastResult result = World.TerrainPhysics.Raycast(
-                    new Ray(Camera.Position, Camera.LookVector), true, MODIFY_RANGE);
+            TerrainRaycastResult result = World.TerrainPhysics.Raycast(
+                new Ray(Camera.Position, Camera.LookVector), true, MODIFY_RANGE);
 
-                if (result.Intersects)
+            if (result.Intersects)
+            {
+                hitBlockAudioSource?.Play();
+
+                if (GlobalNetwork.IsServer || !GlobalNetwork.IsConnected)
                 {
                     Block block = result.Chunk[result.BlockIndex.Value];
 
@@ -87,6 +114,10 @@ namespace AceOfSpades.Tools
                             World.SetBlock(result.Chunk.IndexPosition, result.BlockIndex.Value, Block.AIR, false);
                     }
                 }
+            }
+            else
+            {
+                missAudioSource?.Play();
             }
 
             cooldown = Config.PrimaryFireDelay;
@@ -129,6 +160,17 @@ namespace AceOfSpades.Tools
                     0, 0, 0, 1.01f));
 
             base.Draw();
+        }
+
+        public override void Dispose()
+        {
+            if (!IsDisposed)
+            {
+                hitBlockAudioSource?.Dispose();
+                missAudioSource?.Dispose();
+            }
+
+            base.Dispose();
         }
     }
 }

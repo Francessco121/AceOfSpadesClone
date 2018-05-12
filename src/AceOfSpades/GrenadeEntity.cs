@@ -3,6 +3,7 @@ using AceOfSpades.Graphics;
 using AceOfSpades.Net;
 using Dash.Engine;
 using Dash.Engine.Audio;
+using Dash.Engine.Graphics;
 using Dash.Engine.Graphics.OpenGL;
 using Dash.Engine.Physics;
 using System;
@@ -58,9 +59,14 @@ namespace AceOfSpades
 
                 renderer.VoxelObject = AssetManager.LoadVoxelObject("Models/grenade.aosm", BufferUsageHint.StaticDraw);
 
-                bounceAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Bounce.wav"));
-                bounceAudioSource.MaxDistance = 200;
-                bounceAudioSource.Gain = 0.25f;
+                AudioBuffer bounceAudioBuffer = AssetManager.LoadSound("Weapons/Grenade/Bounce.wav");
+
+                if (bounceAudioBuffer != null)
+                {
+                    bounceAudioSource = new AudioSource(bounceAudioBuffer);
+                    bounceAudioSource.MaxDistance = 200;
+                    bounceAudioSource.Gain = 0.25f;
+                }
 
                 PhysicsBody.OnCollision += PhysicsBody_OnCollision;
             }
@@ -90,11 +96,18 @@ namespace AceOfSpades
 
                     if (!GlobalNetwork.IsServer)
                     {
-                        AudioSource explodeAudioSource = new AudioSource(AssetManager.LoadSound("Weapons/Grenade/Explode.wav"));
-                        explodeAudioSource.MaxDistance = 1000;
-                        explodeAudioSource.Position = Transform.Position;
+                        bool isFar = (Camera.Active.Position - Transform.Position).Length >= 400;
 
-                        world.PlayWorldAudio(new WorldAudioSource(explodeAudioSource));
+                        AudioBuffer explodeBuffer = AssetManager.LoadSound(isFar ? "Weapons/Grenade/explode-far.wav" : "Weapons/Grenade/explode.wav");
+
+                        if (explodeBuffer != null)
+                        {
+                            AudioSource explodeAudioSource = new AudioSource(explodeBuffer);
+                            explodeAudioSource.MaxDistance = isFar ? 1200 : 700;
+                            explodeAudioSource.Position = Transform.Position;
+
+                            world.PlayWorldAudio(new WorldAudioSource(explodeAudioSource));
+                        }
                     }
 
                     Dispose();

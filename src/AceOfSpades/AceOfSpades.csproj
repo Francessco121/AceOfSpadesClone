@@ -77,6 +77,7 @@
     <Compile Include="Characters\Character.cs" />
     <Compile Include="Characters\PlayerDamage.cs" />
     <Compile Include="CommandPost.cs" />
+    <Compile Include="CyclicAudioSource.cs" />
     <Compile Include="Gamemode.cs" />
     <Compile Include="GamemodeType.cs" />
     <Compile Include="Graphics\Renderers\VoxelRenderer.cs" />

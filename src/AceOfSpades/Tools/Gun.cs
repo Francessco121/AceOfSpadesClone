@@ -28,7 +28,9 @@ namespace AceOfSpades.Tools
         public bool IsReloading { get; private set; }
 
         readonly AudioSource fireAudioSource;
+        readonly AudioSource fireFarAudioSource;
         readonly AudioSource reloadAudioSource;
+        readonly AudioSource dryFireAudioSource;
 
         float reloadTimeLeft;
 
@@ -61,39 +63,67 @@ namespace AceOfSpades.Tools
                 {
                     if (GunConfig.PrimaryFireAudio?.ReplicatedFilepath != null)
                     {
-                        fireAudioSource = LoadAudioFromConfig(GunConfig.PrimaryFireAudio, true);
+                        fireAudioSource = LoadAudioFromConfig(GunConfig.PrimaryFireAudio, replicated: true, far: false);
+                    }
+
+                    if (GunConfig.PrimaryFireAudio?.FarFilepath != null)
+                    {
+                        fireFarAudioSource = LoadAudioFromConfig(GunConfig.PrimaryFireAudio, replicated: true, far: true);
                     }
 
                     if (GunConfig.ReloadAudio?.ReplicatedFilepath != null)
                     {
-                        reloadAudioSource = LoadAudioFromConfig(GunConfig.ReloadAudio, true);
+                        reloadAudioSource = LoadAudioFromConfig(GunConfig.ReloadAudio, replicated: true);
                     }
                 }
                 else
                 {
                     if (GunConfig.PrimaryFireAudio?.LocalFilepath != null)
                     {
-                        fireAudioSource = LoadAudioFromConfig(GunConfig.PrimaryFireAudio, false);
+                        fireAudioSource = LoadAudioFromConfig(GunConfig.PrimaryFireAudio);
                     }
 
                     if (GunConfig.ReloadAudio?.LocalFilepath != null)
                     {
-                        reloadAudioSource = LoadAudioFromConfig(GunConfig.ReloadAudio, false);
+                        reloadAudioSource = LoadAudioFromConfig(GunConfig.ReloadAudio);
+                    }
+
+                    AudioBuffer dryFireBuffer = AssetManager.LoadSound("Weapons/dry-fire.wav");
+
+                    if (dryFireBuffer != null)
+                    {
+                        dryFireAudioSource = new AudioSource(dryFireBuffer);
+                        dryFireAudioSource.IsSourceRelative = true;
+                        dryFireAudioSource.Gain = 0.5f;
                     }
                 }
             }
         }
 
-        AudioSource LoadAudioFromConfig(GunAudioConfig config, bool replicated)
+        AudioSource LoadAudioFromConfig(GunAudioConfig config, bool replicated = false, bool far = false)
         {
-            AudioBuffer buffer = AssetManager.LoadSound(replicated ? config.ReplicatedFilepath : config.LocalFilepath);
+            string filePath;
+            if (replicated)
+            {
+                if (far)
+                    filePath = config.FarFilepath;
+                else
+                    filePath = config.ReplicatedFilepath;
+            }
+            else
+                filePath = config.LocalFilepath;
+
+            AudioBuffer buffer = AssetManager.LoadSound(filePath);
+
+            if (buffer == null)
+                return null;
 
             AudioSource audioSource = new AudioSource(buffer);
             audioSource.Gain = replicated ? config.ReplicatedGain : config.LocalGain;
 
             if (replicated)
             {
-                audioSource.MaxDistance = config.MaxDistance;
+                audioSource.MaxDistance = far ? config.FarMaxDistance : config.NearMaxDistance;
             }
             else
             {
@@ -170,6 +200,10 @@ namespace AceOfSpades.Tools
                     if (!GlobalNetwork.IsServer)
                         fireAudioSource?.Play();
                 }
+                else
+                {
+                    dryFireAudioSource?.Play();
+                }
             }
             else if (GlobalNetwork.IsConnected && GlobalNetwork.IsClient)
             {
@@ -187,14 +221,31 @@ namespace AceOfSpades.Tools
 
                     fireAudioSource?.Play();
                 }
+                else
+                {
+                    dryFireAudioSource?.Play();
+                }
             }
         }
 
         public override void OnReplicatedPrimaryFire()
         {
-            fireAudioSource?.Play();
+            if (fireFarAudioSource != null
+                && (Dash.Engine.Graphics.Camera.Active.Position - OwnerPlayer.Transform.Position).Length >= GunConfig.PrimaryFireAudio.FarMinDistance)
+            {
+                fireFarAudioSource?.Play();
+            }
+            else
+            {
+                fireAudioSource?.Play();
+            }
 
             base.OnReplicatedPrimaryFire();
+        }
+
+        public void OnReplicatedReload()
+        {
+            reloadAudioSource?.Play();
         }
 
         public void CancelReload()
@@ -287,6 +338,16 @@ namespace AceOfSpades.Tools
                 fireAudioSource.Position = OwnerPlayer.Transform.Position;
             }
 
+            if (fireFarAudioSource != null && fireFarAudioSource.Position != OwnerPlayer.Transform.Position)
+            {
+                fireFarAudioSource.Position = OwnerPlayer.Transform.Position;
+            }
+
+            if (reloadAudioSource != null && reloadAudioSource.Position != OwnerPlayer.Transform.Position)
+            {
+                reloadAudioSource.Position = OwnerPlayer.Transform.Position;
+            }
+
             base.UpdateReplicated(deltaTime);
         }
 
@@ -301,7 +362,9 @@ namespace AceOfSpades.Tools
             if (!IsDisposed)
             {
                 fireAudioSource?.Dispose();
+                fireFarAudioSource?.Dispose();
                 reloadAudioSource?.Dispose();
+                dryFireAudioSource?.Dispose();
             }
 
             base.Dispose();
