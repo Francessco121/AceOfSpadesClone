@@ -16,9 +16,10 @@ namespace AceOfSpades.Graphics
         public float CubeSize { get; private set; }
 
         public int TriangleCount { get; private set; }
-        public List<Vector4> Vertices { get; private set; }
+        public List<Vector3> Vertices { get; private set; }
         public List<Color4> Colors { get; private set; }
         public List<Vector3> Normals { get; private set; }
+        public List<Vector2> Lighting { get; private set; }
         public List<uint> Indexes { get; private set; }
 
         public ILightingContainer LightingContainer { get; set; }
@@ -26,6 +27,7 @@ namespace AceOfSpades.Graphics
         float[] cVertices;
         float[] cColors;
         float[] cNormals;
+        float[] cLighting;
         uint[] cIndexes;
 
         readonly Vector3 frontNormal, backNormal, leftNormal, rightNormal, topNormal, bottomNormal;
@@ -37,8 +39,8 @@ namespace AceOfSpades.Graphics
         bool dynamicResizing;
         int dynamicBlockCount;
 
-        VoxelObject vo;
-        float ao;
+        readonly VoxelObject vo;
+        readonly float ao;
 
         public VoxelMeshBuilder(VoxelObject vo, float cubeSize, float ao) 
         {
@@ -80,9 +82,11 @@ namespace AceOfSpades.Graphics
 
         void SetupDynamicArrays()
         {
-            int vertexBufferSize = dynamicBlockCount * 4 * 4 * 6; // Components * QuadVertCount * CubeFaceCount
+            // blockCount * Components * QuadVertCount * CubeFaceCount
+            int vertexBufferSize = dynamicBlockCount * 3 * 4 * 6;
             int normalBufferSize = dynamicBlockCount * 3 * 4 * 6;
             int colorBufferSize = dynamicBlockCount * 4 * 4 * 6;
+            int lightingBufferSize = dynamicBlockCount * 2 * 4 * 6;
             int indexBufferSize = dynamicBlockCount * 6 * 4 * 6;
 
             if (cVertices == null)
@@ -90,6 +94,7 @@ namespace AceOfSpades.Graphics
                 cVertices = new float[vertexBufferSize];
                 cColors = new float[colorBufferSize];
                 cNormals = new float[normalBufferSize];
+                cLighting = new float[lightingBufferSize];
                 cIndexes = new uint[indexBufferSize];
             }
             else
@@ -97,26 +102,38 @@ namespace AceOfSpades.Graphics
                 Array.Resize(ref cVertices, vertexBufferSize);
                 Array.Resize(ref cColors, colorBufferSize);
                 Array.Resize(ref cNormals, normalBufferSize);
+                Array.Resize(ref cLighting, lightingBufferSize);
                 Array.Resize(ref cIndexes, indexBufferSize);
             }
         }
 
-        public ushort CopyFromOther(int at, int count, VoxelMeshBuilder other)
-        {
-            ushort newIndex = (ushort)(Vertices.Count / 4);
+        //public ushort CopyFromOther(int at, int count, VoxelMeshBuilder other)
+        //{
+        //    ushort newIndex = (ushort)(Vertices.Count / 3);
 
-            for (int i = 0; i < count; i++, at++)
-            {
-                int tvi = at * 4;
-                int tni = at * 4;
-                int tci = at * 4;
-                int tii = at * 6;
+        //    for (int i = 0; i < count; i++, at++)
+        //    {
+        //        int tvi = at * 3;
+        //        int tni = at * 3;
+        //        int tci = at * 4;
+        //        int tli = at * 2;
+        //        int tii = at * 6;
 
-                AddQuad(other.Vertices[tvi], other.Vertices[tvi + 1], other.Vertices[tvi + 2], other.Vertices[tvi + 3], other.Normals[tni], other.Colors[tci]);
-            }
+        //        AddQuad(
+        //            other.Vertices[tvi], 
+        //            other.Vertices[tvi + 1], 
+        //            other.Vertices[tvi + 2], 
+        //            other.Vertices[tvi + 3], 
+        //            other.Normals[tni], 
+        //            other.Colors[tci],
+        //            other.Lighting[tli],
+        //            other.Lighting[tli + 1],
+        //            other.Lighting[tli + 2],
+        //            other.Lighting[tli + 3]);
+        //    }
 
-            return newIndex;
-        }
+        //    return newIndex;
+        //}
 
         public void SetCubeSize(float cubeSize)
         {
@@ -132,19 +149,21 @@ namespace AceOfSpades.Graphics
             backBottomLeft = new Vector3(-vertexOff, -vertexOff, -vertexOff);
             backBottomRight = new Vector3(vertexOff, -vertexOff, -vertexOff);
 
-            Vertices = new List<Vector4>();
+            Vertices = new List<Vector3>();
             Colors = new List<Color4>();
             Normals = new List<Vector3>();
+            Lighting = new List<Vector2>();
             Indexes = new List<uint>();
         }
 
-        public void Finalize(out float[] vertices, out float[] colors, out float[] normals, out uint[] indexes, out int indexCount)
+        public void Finalize(out float[] vertices, out float[] colors, out float[] normals, out float[] lighting, out uint[] indexes, out int indexCount)
         {
             if (!dynamicResizing)
             {
-                vertices = new float[Vertices.Count * 4];
+                vertices = new float[Vertices.Count * 3];
                 normals = new float[Normals.Count * 3];
                 colors = new float[Colors.Count * 4];
+                lighting = new float[Lighting.Count * 2];
                 indexes = Indexes.ToArray();
                 indexCount = indexes.Length;
             }
@@ -152,12 +171,13 @@ namespace AceOfSpades.Graphics
             {
                 // If this mesh is dynamically updated,
                 // we may need to increase the size of the arrays.
-                if (Vertices.Count * 4 >= cVertices.Length)
+                if (Vertices.Count * 3 >= cVertices.Length)
                     IncreaseDynamicArrays();
 
                 vertices = cVertices;
                 normals = cNormals;
                 colors = cColors;
+                lighting = cLighting;
 
                 for (int k = 0; k < Indexes.Count; k++)
                     cIndexes[k] = Indexes[k];
@@ -168,12 +188,11 @@ namespace AceOfSpades.Graphics
             }
 
             int i = 0;
-            foreach (Vector4 vertex in Vertices)
+            foreach (Vector3 vertex in Vertices)
             {
                 vertices[i++] = vertex.X;
                 vertices[i++] = vertex.Y;
                 vertices[i++] = vertex.Z;
-                vertices[i++] = vertex.W;
             }
             i = 0;
             foreach (Vector3 normal in Normals)
@@ -190,11 +209,17 @@ namespace AceOfSpades.Graphics
                 colors[i++] = color.B;
                 colors[i++] = color.A;
             }
+            i = 0;
+            foreach (Vector2 lightingPair in Lighting)
+            {
+                lighting[i++] = lightingPair.X;
+                lighting[i++] = lightingPair.Y;
+            }
 
             TriangleCount = indexCount / 3;
         }
 
-        void AddVertex(Vector4 vertex)
+        void AddVertex(Vector3 vertex)
         {
             Vertices.Add(vertex);
         }
@@ -214,7 +239,13 @@ namespace AceOfSpades.Graphics
             Colors.Add(color);
         }
 
-        void AddQuad(Vector4 v1, Vector4 v2, Vector4 v3, Vector4 v4, Vector3 normal, Color4 color)
+        void AddLightingPair(Vector2 lightingPair)
+        {
+            Lighting.Add(lightingPair);
+        }
+
+        void AddQuad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector3 normal, Color4 color, 
+            Vector2 l1, Vector2 l2, Vector2 l3, Vector2 l4)
         {
             AddVertex(v1);
             AddVertex(v2);
@@ -251,18 +282,27 @@ namespace AceOfSpades.Graphics
             AddVertexColor(color);
             AddVertexColor(color);
             AddVertexColor(color);
+
+            AddLightingPair(l1);
+            AddLightingPair(l2);
+            AddLightingPair(l3);
+            AddLightingPair(l4);
         }
 
         void AddBlockQuad(Block block, IndexPosition blockIndex, 
             Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, 
             Vector3 normal, Vector3 offset, Color4 color)
         {
+            Vector2 l1 = Vector2.Zero;
+            Vector2 l2 = Vector2.Zero;
+            Vector2 l3 = Vector2.Zero;
+            Vector2 l4 = Vector2.Zero;
+
             // Calculate AO for each vertex
-            Vector4 ao = new Vector4(
-                CalculateAOFor(block, blockIndex, v1, normal),
-                CalculateAOFor(block, blockIndex, v2, normal),
-                CalculateAOFor(block, blockIndex, v3, normal),
-                CalculateAOFor(block, blockIndex, v4, normal));
+            l1.X = CalculateAOFor(block, blockIndex, v1, normal);
+            l2.X = CalculateAOFor(block, blockIndex, v2, normal);
+            l3.X = CalculateAOFor(block, blockIndex, v3, normal);
+            l4.X = CalculateAOFor(block, blockIndex, v4, normal);
 
             // Calculate world lighting
             if (LightingContainer != null)
@@ -282,12 +322,19 @@ namespace AceOfSpades.Graphics
                 int lightingBlockY = blockIndex.Y + (int)normal.Y;
                 int lightingBlockZ = blockIndex.Z + (int)normal.Z;
 
-                float lighting = 1f - LightingContainer.LightingAt(lightingBlockX, lightingBlockY, lightingBlockZ);
+                float lighting = LightingContainer.LightingAt(lightingBlockX, lightingBlockY, lightingBlockZ);
 
-                ao.X = Math.Max(ao.X, lighting);
-                ao.Y = Math.Max(ao.Y, lighting);
-                ao.Z = Math.Max(ao.Z, lighting);
-                ao.W = Math.Max(ao.W, lighting);
+                l1.Y = lighting;
+                l2.Y = lighting;
+                l3.Y = lighting;
+                l4.Y = lighting;
+            }
+            else
+            {
+                l1.Y = 1f;
+                l2.Y = 1f;
+                l3.Y = 1f;
+                l4.Y = 1f;
             }
 
             // Apply the local offset of the quad
@@ -298,12 +345,12 @@ namespace AceOfSpades.Graphics
 
             // Fix anisotropy issue by flipping quad when AO is mostly 
             // on corners adjacent to the seam in quad (from two triangles).
-            if (ao.Y + ao.Z > ao.X + ao.W)
+            if (l2.X + l3.X > l1.X + l4.X)
                 // Flipped
-                AddQuad(new Vector4(v2, ao.Y), new Vector4(v4, ao.W), new Vector4(v1, ao.X), new Vector4(v3, ao.Z), normal, color);
+                AddQuad(v2, v4, v1, v3, normal, color, l2, l4, l1, l3);
             else
                 // Normal
-                AddQuad(new Vector4(v1, ao.X), new Vector4(v2, ao.Y), new Vector4(v3, ao.Z), new Vector4(v4, ao.W), normal, color);
+                AddQuad(v1, v2, v3, v4, normal, color, l1, l2, l3, l4);
         }
 
         float CalculateAOFor(Block block, IndexPosition blockIndex, Vector3 vertexOffset, Vector3 faceNormal)
@@ -494,6 +541,7 @@ namespace AceOfSpades.Graphics
             Vertices.Clear();
             Normals.Clear();
             Colors.Clear();
+            Lighting.Clear();
             Indexes.Clear();
         }
     }

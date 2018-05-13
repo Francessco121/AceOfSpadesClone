@@ -17,7 +17,7 @@ in vec4 fragPosition;
 in vec4 fragSkyPosition;
 in vec4 fragColor;
 in vec3 fragSurfaceNormal;
-in float fragAO;
+in vec2 fragLighting;
 in vec4 fragShadowPosition;
 
 layout(location = 0) out vec4 finalColor;
@@ -90,7 +90,7 @@ vec2 calculateSkyFragCoords()
  * Calculates the amount of shadowing for
  * the current fragment.
 */
-float calculateShadow(float nDotl)
+float calculateShadow()
 {
 	// Get the projected coords of the shadow
 	vec3 projCoords = fragShadowPosition.xyz / fragShadowPosition.w;
@@ -135,57 +135,6 @@ float calculateShadow(float nDotl)
 }
 
 /*
- * Calculates the diffuse color of the specified light.
-*/
-vec3 calculateDiffuse(int lightType, int lightI, vec3 lightVector, vec3 unitLightVector)
-{
-	// Calculate diffuse brightness from distance of the
-	// normal vector and the light vector
-	float nDotl = dot(fragSurfaceNormal, unitLightVector);
-	
-	// Apply night-light
-	if (nDotl < 0.0)
-		nDotl *= -0.01;
-	float brightness = max(nDotl, 0.0);
-	
-	// Attenuation
-	float attFactor = 1.0;
-	if (lightType != LIGHT_DIRECTIONAL)
-	{
-		float distToLight = length(lightVector);
-		attFactor = attenuation[lightI].x + (attenuation[lightI].y * distToLight) + (attenuation[lightI].z * distToLight * distToLight);
-	}
-	
-	if (lightType == LIGHT_SPOT)
-	{
-		vec3 lightDir = lightDirection[lightI];
-		float radius = lightRadius[lightI];
-		
-		float ddot = dot(lightDir, unitLightVector);
-		
-		if (ddot >= 0.0)
-		{
-			ddot = clamp(ddot, -1.0, 1.0);
-			float angle = acos(ddot);
-			
-			brightness = max(1.0 - (angle / radius), 0.0);
-		}
-		else
-			brightness = 0.0;
-	}
-
-	vec3 diffuseFactor = (brightness * lightPower[lightI] * lightColor[lightI]) / attFactor;
-	
-	if (lightType == LIGHT_DIRECTIONAL)
-	{
-		float shadowFactor = renderShadows ? calculateShadow(nDotl) : 0.0;
-		diffuseFactor = max((diffuseFactor * lightFalloff) - shadowFactor, 0.0);
-	}
-	
-	return diffuseFactor;
-}
-
-/*
  * Calculates the specular light from a given light
  * to the current fragment.
 */
@@ -207,9 +156,10 @@ vec3 calculateSpecular(vec3 unitLightVector, vec3 unitVectorToCamera, vec3 specu
 }
 
 /*
- * Applies a light to the given diffuse and specular values.
+ * Applies the light to the given color, brightness, shading, and specular values.
 */
-void applyLight(in int lightI, in vec3 unitVectorToCamera, inout vec3 totalDiffuse, inout vec3 totalSpecular)
+void applyLight(in int lightI, in vec3 unitVectorToCamera, inout vec3 color, inout float brightness, inout float shading,
+	inout vec3 totalSpecular)
 {
 	// Get the type of light
 	int lightType = lightTypes[lightI];
@@ -218,9 +168,64 @@ void applyLight(in int lightI, in vec3 unitVectorToCamera, inout vec3 totalDiffu
 	vec3 lightVector = lightType != LIGHT_DIRECTIONAL ? lightPosition[lightI] - fragPosition.xyz : lightPosition[lightI];
 	vec3 unitLightVector = normalize(lightVector);
 
-	// Apply diffuse color
-	totalDiffuse += calculateDiffuse(lightType, lightI, lightVector, unitLightVector);
-	
+	float lightBrightness = 0.0;
+
+	// Handle positional lights
+	if (lightType != LIGHT_DIRECTIONAL)
+	{
+		// Default brightness from light to the light's power
+		lightBrightness = lightPower[lightI];
+
+		// Handle individual light types
+		if (lightType == LIGHT_SPOT)
+		{
+			vec3 lightDir = lightDirection[lightI];
+			float radius = lightRadius[lightI];
+			
+			float ddot = dot(lightDir, unitLightVector);
+			
+			if (ddot >= 0.0)
+			{
+				ddot = clamp(ddot, -1.0, 1.0);
+				float angle = acos(ddot);
+				
+				lightBrightness *= max(1.0 - (angle / radius), 0.0);
+			}
+			else
+			{
+				lightBrightness = 0;
+			}
+		}
+
+		// Calculate positional-light attenuation
+		float distToLight = length(lightVector);
+		float attFactor = attenuation[lightI].x + (attenuation[lightI].y * distToLight) + (attenuation[lightI].z * distToLight * distToLight);
+
+		lightBrightness /= attFactor;
+	}
+	// Handle directional lights
+	else
+	{
+		// Multiply the intensity based on the angle of the light (normals facing light directly should get full brightness)
+		float nDotl = dot(fragSurfaceNormal, unitLightVector);
+		shading *= (nDotl + 1.0) * 0.5; // nDotl is [-1, 1], convert to [0, 2] and cut in half to go to [0, 1]
+
+		// Calculate shadows
+		float shadowFactor = renderShadows ? calculateShadow() : 0.0;
+
+		// For the upper half of lighting, use shadows to darken any normal lighting
+		lightBrightness = fragLighting.y < 0.5
+			? fragLighting.y
+			: fragLighting.y * (1.0 - (shadowFactor * 0.25));
+
+		// Apply global light falloff
+		lightBrightness *= lightFalloff;
+	}
+
+	// Apply light color and brightness
+	color = mix(color, color * lightColor[lightI], min(lightBrightness, 1.0));
+	brightness += lightBrightness;
+
 	// Apply specular highlights
 	if (specularPower > 0.0 && specularIntensity > 0.0)
 		totalSpecular += calculateSpecular(unitLightVector, unitVectorToCamera, lightColor[lightI], specularPower, specularIntensity);
@@ -286,27 +291,38 @@ void main()
 	// Calculate the vector from the vertex to the camera
 	vec3 unitVectorToCamera = normalize(cameraPosition - fragPosition.xyz);
 	
-	vec3 totalDiffuse = vec3(0.0);
+	// Setup lighting and color variables
+	float brightness = 0.0;
+	vec3 color = fragColor.rgb * colorOverlay.rgb; // Default to emmisive color
+	float alpha = fragColor.a * colorOverlay.a;
+	float shading = 1.0;
 	vec3 totalSpecular = vec3(0.0);
-	
+
+	// Calculate lighting
 	if (skipLight)
-		totalDiffuse = vec3(1.0);
+	{
+		brightness = 1.0;
+	}
 	else
 	{
 		// Apply each light
 		for (int i = 0; i < numLights; i++)
-			applyLight(i, unitVectorToCamera, totalDiffuse, totalSpecular);
+		{
+			applyLight(i, unitVectorToCamera, color, brightness, shading, totalSpecular);
+		}
 
-		// Limit the totalDiffuse to only be higher than
-		// the ambient intensity
-		totalDiffuse = max(totalDiffuse, ambientIntensity);
-	}	
-	
-	// Blend the final pixel color
-	vec3 diffuseColor = totalDiffuse * (1.0 - fragAO);
-	vec3 emmisiveColor = fragColor.rgb * colorOverlay.rgb;
-	
-	finalColor = vec4(diffuseColor * emmisiveColor + totalSpecular, fragColor.a * colorOverlay.a);
+		// Apply final shading
+		brightness *= 1.0 - (shading * 0.2);
+	}
+
+	// Apply ambient lighting
+	brightness = max(brightness, ambientIntensity);
+
+	// Apply AO
+	brightness *= 1.0 - fragLighting.x;
+
+	// Blend color, brightness, specular + attach alpha
+	finalColor = vec4((color * brightness) + totalSpecular, alpha);
 	
 	// Apply fog if enabled
 	if (fogEnabled) 

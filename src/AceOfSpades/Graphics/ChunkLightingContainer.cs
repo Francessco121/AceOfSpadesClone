@@ -460,7 +460,7 @@ namespace AceOfSpades.Graphics
                 normallight = GetNormalLight(x, y, z);
             }
 
-            return Math.Max(Math.Max(sunlight, normallight) / 31f, 0.05f);
+            return Math.Max(Math.Max(sunlight, normallight) / 31f, 0f);
         }
     }
 }

@@ -39,6 +39,7 @@ namespace AceOfSpades.Tools
             if (GlobalNetwork.IsClient)
             {
                 Renderer = new VoxelRenderComponent();
+                Renderer.OnlyRenderFor = RenderPass.Normal;
                 AddComponent(Renderer);
             }
 

@@ -565,7 +565,12 @@ namespace AceOfSpades.Client.Net
                 {
                     Chunk chunk;
                     if (World.Terrain.Chunks.TryGetValue(change.ChunkIndex, out chunk))
-                        chunk.SetBlock(change.Block, change.BlockIndex);
+                    {
+                        if (change.Block.Material == Block.AIR.Material)
+                            chunk.RemoveBlock(change.BlockIndex);
+                        else
+                            chunk.SetBlock(change.Block, change.BlockIndex);
+                    }
                     else
                         DashCMD.WriteError("[AOSNet - TerrainDelta] Received update for non-existant chunk! IPos: {0}",
                             change.ChunkIndex);

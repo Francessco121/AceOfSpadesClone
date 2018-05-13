@@ -131,9 +131,12 @@ namespace Dash.Engine.Graphics
 
             float sunY = (float)Math.Sin(timeT);
 
-            Master.AmbientIntensity = MathHelper.Clamp(sunY * 0.75f, 0.01f, 0.45f);
-            Master.LightFalloff = MathHelper.Clamp(sunY + 0.6f, 0, 1.25f);
-            Master.ShadowVisibility = MathHelper.Clamp(sunY - 0.2f, 0, 0.75f);
+           // Master.AmbientIntensity = MathHelper.Clamp(sunY * 0.75f, 0.01f, 0.45f);
+           // Master.LightFalloff = MathHelper.Clamp(sunY + 0.6f, 0, 1.25f);
+            //Master.ShadowVisibility = MathHelper.Clamp(sunY - 0.2f, 0, 0.75f);
+            Master.ShadowVisibility = 1f;
+            Master.LightFalloff = 1f;
+            Master.AmbientIntensity = 0f;
             float shadowMinBias = 0.0005f;
             float shadowMaxBias = 0.0015f;
             float shadowBiasRange = shadowMaxBias - shadowMinBias;

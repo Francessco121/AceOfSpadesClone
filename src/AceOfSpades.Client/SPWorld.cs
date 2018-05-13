@@ -28,9 +28,9 @@ namespace AceOfSpades.Client
         public SPWorld(MasterRenderer renderer)
             : base(renderer)
         {
-            WorldDescription desc = LoadFromFile("default");
+            WorldDescription desc = LoadFromFile("foundry");
 
-            Vector3 spawnPos = new Vector3(100, 400, 100);
+            Vector3 spawnPos = new Vector3(1000, 400, 1000);
 
             var commandposts = desc.GetObjectsByTag("CommandPost");
             foreach (WorldObjectDescription ob in commandposts)

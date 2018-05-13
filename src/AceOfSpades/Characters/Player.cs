@@ -96,8 +96,8 @@ namespace AceOfSpades.Characters
                 
                 base.Renderer.VoxelObject = new DebugVOCube(world.GetTeamColor(team).ToColor4(), 1);
                 
-                flashlight = new Light(Vector3.Zero, LightType.Spot, 2, Color.White, new Vector3(1, 0, 0.0025f))
-                    { Radius = MathHelper.ToRadians(35), Visible = false };
+                flashlight = new Light(Vector3.Zero, LightType.Spot, 2, Color.White, new Vector3(1, 0, 0.002f))
+                    { Radius = MathHelper.ToRadians(45), Visible = false };
                 renderer.Lights.Add(flashlight);
             }
 

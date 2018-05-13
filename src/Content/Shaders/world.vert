@@ -5,15 +5,16 @@
 	Type: vertex shader
 */
 
-in vec4 position;
+in vec3 position;
 in vec4 color;
 in vec3 normal;
+in vec2 lightingPair;
 
 out vec4 fragPosition;
 out vec4 fragSkyPosition;
 out vec4 fragColor;
 out vec3 fragSurfaceNormal;
-out float fragAO;
+out vec2 fragLighting;
 out vec4 fragShadowPosition;
 
 uniform mat4 transformationMatrix;
@@ -26,7 +27,7 @@ uniform mat4 lightSpaceMatrix;
 */
 void main()
 {
-	vec4 vertexPosition = vec4(position.xyz, 1.0);
+	vec4 vertexPosition = vec4(position, 1.0);
 	vec4 worldPosition = transformationMatrix * vertexPosition;
 	vec4 viewPosition = viewMatrix * worldPosition;
 	
@@ -40,10 +41,10 @@ void main()
 	// Calculate the shadow position
 	fragShadowPosition = lightSpaceMatrix * transformationMatrix * vertexPosition;
 	
-	// Pass on the vertex color and vertex AO to 
+	// Pass on the vertex color and vertex lighting to 
 	// the fragment shader
 	fragColor = color;
-	fragAO = position.w;
+	fragLighting = lightingPair;
 	
 	// Calculate the normal of the vertex
 	mat3 viewPos3 = inverse(mat3(transformationMatrix));
