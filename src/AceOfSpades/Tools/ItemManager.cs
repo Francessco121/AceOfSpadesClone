@@ -214,6 +214,11 @@ namespace AceOfSpades.Tools
 
         void UpdateMuzzleFlash(Gun gun, float deltaTime)
         {
+            if (!GlobalNetwork.IsServer)
+            {
+                ((ClientMuzzleFlash)muzzleFlash).Update(deltaTime);
+            }
+
             if (GlobalNetwork.IsClient)
             {
                 if (((ClientMuzzleFlash)muzzleFlash).UpdateReplicated(gun, MuzzleFlashIterations, deltaTime))

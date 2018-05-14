@@ -7,13 +7,16 @@ namespace AceOfSpades.Tools
 {
     public class ClientMuzzleFlash : IMuzzleFlash
     {
+        const float MUZZLE_FLASH_COOLDOWN = 0.15f;
+        const float MUZZLE_FLASH_LIGHT_POWER = 1f;
+
         MasterRenderer renderer;
         Player ownerPlayer;
         SimpleCamera camera;
 
         DebugCube flashCube;
         Light light;
-        int muzzleFlash;
+        float muzzleFlashTime;
         float replicatedMuzzleFlashCooldown;
 
         public ClientMuzzleFlash(MasterRenderer renderer, Player ownerPlayer)
@@ -22,7 +25,7 @@ namespace AceOfSpades.Tools
             this.ownerPlayer = ownerPlayer;
             camera = ownerPlayer.GetCamera();
 
-            light = new Light(Vector3.Zero, LightType.Point, 3, Color.White, new Vector3(1, 0, 0.05f));
+            light = new Light(Vector3.Zero, LightType.Point, 0f, Color.White, new Vector3(1, 0, 0.1f));
             light.Visible = false;
             renderer.Lights.Add(light);
 
@@ -32,14 +35,20 @@ namespace AceOfSpades.Tools
 
         public void Show()
         {
-            muzzleFlash = 2;
+            muzzleFlashTime = MUZZLE_FLASH_COOLDOWN;
             light.Visible = true;
         }
 
         public void Hide()
         {
-            muzzleFlash = 0;
+            muzzleFlashTime = 0;
             light.Visible = false;
+        }
+
+        public void Update(float deltaTime)
+        {
+            if (muzzleFlashTime > 0)
+                muzzleFlashTime -= deltaTime;
         }
 
         public bool UpdateReplicated(Gun gun, int flashIterations, float deltaTime)
@@ -60,9 +69,8 @@ namespace AceOfSpades.Tools
 
         public void Render(Gun gun, EntityRenderer entRenderer, ItemViewbob viewbob)
         {
-            if (muzzleFlash > 0)
+            if (muzzleFlashTime > 0)
             {
-                muzzleFlash--;
                 Matrix4 flashMatrix;
 
                 if (ownerPlayer.IsRenderingThirdperson)
@@ -95,6 +103,7 @@ namespace AceOfSpades.Tools
                 }
 
                 light.Position = flashMatrix.ExtractTranslation();
+                light.LightPower = (muzzleFlashTime / MUZZLE_FLASH_COOLDOWN) * MUZZLE_FLASH_LIGHT_POWER;
 
                 flashCube.RenderFront = !ownerPlayer.IsRenderingThirdperson;
                 entRenderer.Batch(flashCube, flashMatrix);

@@ -23,6 +23,18 @@ namespace Dash.Engine
             return a * (1 - t2) + b * t2;
         }
 
+        public static float CubicBezier(float p0, float p1, float p2, float p3, float t)
+        {
+            float inverseT = 1 - t;
+
+            double p0f = Math.Pow(inverseT, 3) * p0;
+            double p1f = 3 * t * Math.Pow(inverseT, 2) * p1;
+            double p2f = 3 * Math.Pow(t, 2) * inverseT * p2;
+            double p3f = Math.Pow(t, 3) * p3;
+
+            return (float)(p0f + p1f + p2f + p3f);
+        }
+
         public static double InverseLerp(double a, double b, double l)
         {
             // l = a + f * (b - a)

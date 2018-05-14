@@ -198,7 +198,6 @@ namespace AceOfSpades.Graphics
             }
 
             RunSunlightRemove();
-            //RunSunlightFill();
 
             while (sunlightRequestQueue.TryDequeue(out LightRequestNode node))
             {
@@ -215,60 +214,63 @@ namespace AceOfSpades.Graphics
                 }
             }
 
-           // RunSunlightFill();
-
             while (sunlightRefillRequestQueue.TryDequeue(out IndexPosition index))
             {
                 int x = index.X;
                 int y = index.Y;
                 int z = index.Z;
 
-                int currentSunlight = GetSunlight(x, y, z);
+                for (int dx = -1; dx <= 1; dx++)
+                    for (int dy = -1; dy <= 1; dy++)
+                        for (int dz = -1; dz <= 1; dz++)
+                        {
+                            int numZero = 0;
+                            if (dx == 0) numZero++;
+                            if (dy == 0) numZero++;
+                            if (dz == 0) numZero++;
 
-                if (currentSunlight == 0)
-                {
-                    for (int dx = -1; dx <= 1; dx++)
-                        for (int dy = -1; dy <= 1; dy++)
-                            for (int dz = -1; dz <= 1; dz++)
+                            if (numZero == 2)
                             {
-                                int numZero = 0;
-                                if (dx == 0) numZero++;
-                                if (dy == 0) numZero++;
-                                if (dz == 0) numZero++;
+                                int nx = x + dx;
+                                int ny = y + dy;
+                                int nz = z + dz;
 
-                                if (numZero == 2)
+                                if (nx < 0 || ny < 0 || nz < 0 || nx >= Chunk.HSIZE || ny >= Chunk.VSIZE || nz >= Chunk.HSIZE)
                                 {
-                                    int nx = x + dx;
-                                    int ny = y + dy;
-                                    int nz = z + dz;
+                                    // Indexes are out of this chunk, check for the other chunk and pass on the light value.
+                                    int cx = (int)Math.Floor((float)nx / Chunk.HSIZE);
+                                    int cy = (int)Math.Floor((float)ny / Chunk.VSIZE);
+                                    int cz = (int)Math.Floor((float)nz / Chunk.HSIZE);
 
-                                    if (nx < 0 || ny < 0 || nz < 0 || nx >= Chunk.HSIZE || ny >= Chunk.VSIZE || nz >= Chunk.HSIZE)
+                                    Chunk otherChunk;
+                                    if (terrain.TryGetChunk(chunk.IndexPosition + new IndexPosition(cx, cy, cz), out otherChunk))
                                     {
-                                        // Indexes are out of this chunk, check for the other chunk and pass on the light value.
-                                        int cx = (int)Math.Floor((float)nx / Chunk.HSIZE);
-                                        int cy = (int)Math.Floor((float)ny / Chunk.VSIZE);
-                                        int cz = (int)Math.Floor((float)nz / Chunk.HSIZE);
+                                        ChunkLightingContainer otherLighting = otherChunk.Lighting;
 
-                                        Chunk otherChunk;
-                                        if (terrain.TryGetChunk(chunk.IndexPosition + new IndexPosition(cx, cy, cz), out otherChunk))
+                                        int bx = nx < 0 ? nx + Chunk.HSIZE : nx % Chunk.HSIZE;
+                                        int by = ny < 0 ? ny + Chunk.VSIZE : ny % Chunk.VSIZE;
+                                        int bz = nz < 0 ? nz + Chunk.HSIZE : nz % Chunk.HSIZE;
+
+                                        int neighborSunlight = otherLighting.GetSunlight(bx, by, bz);
+
+                                        if (neighborSunlight > 0)
                                         {
-                                            ChunkLightingContainer otherLighting = otherChunk.Lighting;
-
-                                            int bx = nx < 0 ? nx + Chunk.HSIZE : nx % Chunk.HSIZE;
-                                            int by = ny < 0 ? ny + Chunk.VSIZE : ny % Chunk.VSIZE;
-                                            int bz = nz < 0 ? nz + Chunk.HSIZE : nz % Chunk.HSIZE;
-
                                             // TODO: Should this make a request instead?
                                             otherLighting.sunlightQueue.Enqueue(new IndexPosition(bx, by, bz));
                                         }
                                     }
-                                    else
+                                }
+                                else
+                                {
+                                    int neighborSunlight = GetSunlight(nx, ny, nz);
+
+                                    if (neighborSunlight > 0)
                                     {
                                         sunlightQueue.Enqueue(new IndexPosition(nx, ny, nz));
                                     }
                                 }
                             }
-                }
+                        }
             }
 
             RunSunlightFill();
@@ -316,22 +318,35 @@ namespace AceOfSpades.Graphics
                                         int by = ny < 0 ? ny + Chunk.VSIZE : ny % Chunk.VSIZE;
                                         int bz = nz < 0 ? nz + Chunk.HSIZE : nz % Chunk.HSIZE;
 
-                                        if (!otherChunk.IsBlockAt(bx, by, bz) && otherLighting.GetSunlight(bx, by, bz) + 2 <= lightLevel)
+                                        if (!otherChunk.IsBlockAt(bx, by, bz))
                                         {
-                                            int newLight = Math.Max(lightLevel - 1, 0);
+                                            int neighborSunlight = otherLighting.GetSunlight(bx, by, bz);
 
-                                            otherLighting.RequestSetSunlight(bx, by, bz, (short)newLight);
+                                            bool downwardSunlight = lightLevel == MAX_LIGHT_LEVEL && dy == -1;
+
+                                            if ((downwardSunlight && neighborSunlight != MAX_LIGHT_LEVEL) || (neighborSunlight + 2 <= lightLevel))
+                                            {
+                                                int newLight = Math.Max(downwardSunlight ? MAX_LIGHT_LEVEL : lightLevel - 1, 0);
+
+                                                otherLighting.RequestSetSunlight(bx, by, bz, (short)newLight);
+                                            }
                                         }
                                     }
                                 }
-                                else if (!chunk.IsBlockAt(nx, ny, nz) && GetSunlight(nx, ny, nz) + 2 <= lightLevel)
+                                else if (!chunk.IsBlockAt(nx, ny, nz))
                                 {
                                     // Update sunlight level in our chunk
-                                    int newLight = Math.Max(lightLevel == MAX_LIGHT_LEVEL && dy == -1
-                                        ? MAX_LIGHT_LEVEL : lightLevel - 1, 0);
+                                    int neighborSunlight = GetSunlight(nx, ny, nz);
 
-                                    SetSunlight(nx, ny, nz, newLight);
-                                    sunlightQueue.Enqueue(new IndexPosition(nx, ny, nz));
+                                    bool downwardSunlight = lightLevel == MAX_LIGHT_LEVEL && dy == -1;
+
+                                    if ((downwardSunlight && neighborSunlight != MAX_LIGHT_LEVEL) || (neighborSunlight + 2 <= lightLevel))
+                                    {
+                                        int newLight = Math.Max(downwardSunlight ? MAX_LIGHT_LEVEL : lightLevel - 1, 0);
+
+                                        SetSunlight(nx, ny, nz, newLight);
+                                        sunlightQueue.Enqueue(new IndexPosition(nx, ny, nz));
+                                    }
                                 }
                             }
                         }

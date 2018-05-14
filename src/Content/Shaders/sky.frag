@@ -35,19 +35,23 @@ void main()
 	{
 		vec3 unitSunPos = normalize(sunPosition);
 		float distToSun = distance(pointOnSphere, unitSunPos);
-		float invSunDist = 1.05 - distToSun;
+		//float invSunDist = 1.05 - distToSun;
 		
 		float sunHeight = unitSunPos.y;
-		float invSunHeight = 1.0 - sunHeight;
-		float sunPower = 20.0 - 5.0 * invSunHeight;
+		// float invSunHeight = 1.0 - sunHeight;
+		// float sunPower = 20.0 - 5.0 * invSunHeight;
 
-		if (invSunDist > 0.0)
-			sunVisibility = pow(invSunDist, clamp(sunPower, 15.0, 40.0)) * clamp((sunHeight + 0.5) / 1.5, 0.0, 1.0);
-			// sunVisibility = pow(invSunDist, 15) * clamp((a + 0.5) / 1.5, 0, 1);
+		// if (invSunDist > 0.0)
+		// 	sunVisibility = pow(invSunDist, 30.0) * clamp((sunHeight + 0.5) / 1.5, 0.0, 1.0);
+		// 	// sunVisibility = pow(invSunDist, 15) * clamp((a + 0.5) / 1.5, 0, 1);
+
+		sunVisibility = clamp((1.0 - (pow(distToSun + 0.93, 30.0) - 0.2)) * (1.0 - skyMapOffset), 0.0, 1.0);
 	}
+
+	float skyMapOffsetMod = clamp(skyMapOffset - 0.1, 0.0, 1.0);
 	
-	vec4 zenith = texture(skyMap, vec2(1.0, skyMapOffset));
-	vec4 horizon = texture(skyMap, vec2(0.0, skyMapOffset));
+	vec4 zenith = texture(skyMap, vec2(1.0, skyMapOffsetMod));
+	vec4 horizon = texture(skyMap, vec2(0.0, skyMapOffsetMod));
 	
 	finalColor = mix(mix(horizon, zenith, a), vec4(1.0, 1.0, 0.0, 1.0), sunVisibility);
 	finalColor.a = skyMapFade;

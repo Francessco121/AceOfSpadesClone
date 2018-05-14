@@ -68,7 +68,7 @@ namespace Dash.Engine.Graphics
         public float FogMin = 0;
         public float FogMax = 1f;
         public bool FogEnabled = true;
-        public float AmbientIntensity = 0.2f;
+        public float AmbientIntensity = 0f;//0.2f;
         public float ShadowVisibility = 0.3f;
         public float ShadowBias = 0.0025f;
         public float LightFalloff;

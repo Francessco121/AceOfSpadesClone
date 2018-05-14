@@ -131,12 +131,9 @@ namespace Dash.Engine.Graphics
 
             float sunY = (float)Math.Sin(timeT);
 
-           // Master.AmbientIntensity = MathHelper.Clamp(sunY * 0.75f, 0.01f, 0.45f);
-           // Master.LightFalloff = MathHelper.Clamp(sunY + 0.6f, 0, 1.25f);
-            //Master.ShadowVisibility = MathHelper.Clamp(sunY - 0.2f, 0, 0.75f);
-            Master.ShadowVisibility = 1f;
-            Master.LightFalloff = 1f;
-            Master.AmbientIntensity = 0f;
+            Master.LightFalloff = Interpolation.CubicBezier(0, 1, 1, 1, MathHelper.Clamp(sunY + 0.2f, 0, 1f));
+            Master.ShadowVisibility = sunY > 0 ? 1f : 0f;// MathHelper.Clamp(sunY, 0, 1f);
+
             float shadowMinBias = 0.0005f;
             float shadowMaxBias = 0.0015f;
             float shadowBiasRange = shadowMaxBias - shadowMinBias;
@@ -152,14 +149,14 @@ namespace Dash.Engine.Graphics
             // 0 - 12 = -12     / 12 = -1
             // 24 - 12 = 12     / 12 = 1
 
-            float n = Math.Abs((currentHour - 12) / 12) * 1.5f;
+            //float n = Math.Abs((currentHour - 12) / 12) * 1.5f;
 
-            float mapOff = MathHelper.Clamp(n * n, 0, 1);
+            //float mapOff = MathHelper.Clamp(n * n, 0, 1);
 
             //Diagnostics.DashCMD.WriteLine("Hour: {0:N2}, Off: {1:N2}, Fade: {2:N2}", currentHour, mapOff, mapFade);
 
-            skyMapOffset = mapOff;
-            shader.LoadFloat("skyMapOffset", mapOff);
+            //skyMapOffset = mapOff;
+            shader.LoadFloat("skyMapOffset", 1f - Master.LightFalloff);
             shader.LoadFloat("skyMapFade", 1f);
             shader.LoadBool("renderSun", drawSun);
 

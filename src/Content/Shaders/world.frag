@@ -211,7 +211,10 @@ void applyLight(in int lightI, in vec3 unitVectorToCamera, inout vec3 color, ino
 		shading *= (nDotl + 1.0) * 0.5; // nDotl is [-1, 1], convert to [0, 2] and cut in half to go to [0, 1]
 
 		// Calculate shadows
-		float shadowFactor = renderShadows ? calculateShadow() : 0.0;
+		float shadowFactor = renderShadows && nDotl > 0.0 ? calculateShadow() : 0.0;
+
+		if (nDotl > 0.0 && nDotl < 0.1)
+			shadowFactor *= (nDotl * 0.1);
 
 		// For the upper half of lighting, use shadows to darken any normal lighting
 		lightBrightness = fragLighting.y < 0.5
