@@ -123,7 +123,10 @@ namespace AceOfSpades.Graphics
                 shader.LoadMatrix4("transformationMatrix", transMatrix);
 
                 if (!pass.HasFlag(RenderPass.Shadow))
+                {
                     shader.LoadColor4("colorOverlay", imp.Color);
+                    shader.LoadFloat("entityLighting", 1f);
+                }
 
                 // Draw
                 GL.DrawElements(BeginMode.Triangles, aabbDebugBox.VoxelObject.Mesh.VertexCount,
@@ -143,7 +146,10 @@ namespace AceOfSpades.Graphics
                 shader.LoadMatrix4("transformationMatrix", transMatrix);
 
                 if (!pass.HasFlag(RenderPass.Shadow))
+                {
                     shader.LoadColor4("colorOverlay", impact.Color);
+                    shader.LoadFloat("entityLighting", 1f);
+                }
 
                 // Draw
                 GL.DrawElements(BeginMode.Triangles, aabbDebugBox.VoxelObject.Mesh.VertexCount,
@@ -163,7 +169,10 @@ namespace AceOfSpades.Graphics
                 shader.LoadMatrix4("transformationMatrix", transMatrix);
 
                 if (!pass.HasFlag(RenderPass.Shadow))
+                {
                     shader.LoadColor4("colorOverlay", Color.Red);
+                    shader.LoadFloat("entityLighting", 1f);
+                }
 
                 // Draw
                 GL.DrawElements(BeginMode.Triangles, aabbDebugBox.VoxelObject.Mesh.VertexCount, 
@@ -180,6 +189,7 @@ namespace AceOfSpades.Graphics
                 shader.LoadBool("skipLight", true);
                 shader.LoadBool("renderShadows", false);
                 shader.LoadColor4("colorOverlay", Color.White);
+                shader.LoadFloat("entityLighting", 1f);
             }
 
             foreach (RenderableRay ray in batchedRays)

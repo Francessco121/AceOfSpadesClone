@@ -39,6 +39,7 @@ namespace AceOfSpades.Graphics
                 shader.LoadFloat("specularPower", alphaPass ? 40 : 0);
                 shader.LoadFloat("specularIntensity", alphaPass ? 0.5f : 0);
                 shader.LoadColor4("colorOverlay", Color.White);
+                shader.LoadFloat("entityLighting", 1f);
             }
 
             foreach (Chunk chunk in batchedChunks)

@@ -269,6 +269,7 @@ namespace Dash.Engine.Graphics
 
             forwardShader.Start();
             forwardShader.LoadColor4("colorOverlay", Color.White);
+            forwardShader.LoadFloat("entityLighting", 1f);
 
             // Load global shader variables
             Camera camera = Camera.Active;

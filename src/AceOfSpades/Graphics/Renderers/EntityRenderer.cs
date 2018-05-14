@@ -141,6 +141,7 @@ namespace AceOfSpades.Graphics
                 {
                     shader.LoadBool("skipLight", ent.ApplyNoLighting);
                     shader.LoadColor4("colorOverlay", ent.ColorOverlay);
+                    shader.LoadFloat("entityLighting", 1f);
                 }
 
                 // Render the entity
@@ -178,6 +179,7 @@ namespace AceOfSpades.Graphics
             {
                 shader.LoadBool("skipLight", false);
                 shader.LoadColor4("colorOverlay", Color.White);
+                shader.LoadFloat("entityLighting", 1f);
             }
 
             StateManager.DepthFunc(DepthFunction.Less);
