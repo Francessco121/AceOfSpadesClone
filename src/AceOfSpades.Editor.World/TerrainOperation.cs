@@ -25,7 +25,10 @@ namespace AceOfSpades.Editor.World
 
         public void Apply()
         {
-            chunk.SetBlock(block, blockPos);
+            if (block.Material == Block.AIR.Material)
+                chunk.RemoveBlock(blockPos);
+            else
+                chunk.SetBlock(block, blockPos);
         }
 
         public static TerrainOperation CreateUndoFor(TerrainOperation op)
