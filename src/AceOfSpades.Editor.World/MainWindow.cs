@@ -22,7 +22,7 @@ namespace AceOfSpades.Editor.World
         protected override void Load()
         {
             SetVSync(false);
-            TargetFrameRate = 120;
+            TargetFrameRate = 144;
 
             Renderer.GFXSettings.ShadowResolution = 4096;
             Renderer.FogEnabled = false;
