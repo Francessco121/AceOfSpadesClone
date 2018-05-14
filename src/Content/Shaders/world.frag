@@ -38,6 +38,7 @@ uniform float lightFalloff;
 uniform float specularPower;
 uniform float specularIntensity;
 uniform vec4 colorOverlay;
+uniform float entityLighting;
 
 // Shadows
 uniform int pcfSamples;
@@ -216,10 +217,12 @@ void applyLight(in int lightI, in vec3 unitVectorToCamera, inout vec3 color, ino
 		if (nDotl > 0.0 && nDotl < 0.1)
 			shadowFactor *= (nDotl * 0.1);
 
+		float globalLighting = fragLighting.y * entityLighting;
+
 		// For the upper half of lighting, use shadows to darken any normal lighting
-		lightBrightness = fragLighting.y < 0.5
-			? fragLighting.y
-			: fragLighting.y * (1.0 - (shadowFactor * 0.25));
+		lightBrightness = globalLighting < 0.5
+			? globalLighting
+			: globalLighting * (1.0 - (shadowFactor * 0.25));
 
 		// Apply global light falloff
 		lightBrightness *= lightFalloff;

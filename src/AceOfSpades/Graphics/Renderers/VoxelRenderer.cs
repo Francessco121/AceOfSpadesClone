@@ -77,6 +77,7 @@ namespace AceOfSpades.Graphics.Renderers
                 {
                     shader.LoadBool("skipLight", vrc.ApplyNoLighting);
                     shader.LoadColor4("colorOverlay", vrc.ColorOverlay);
+                    shader.LoadFloat("entityLighting", vrc.Lighting);
                 }
 
                 // Render the entity

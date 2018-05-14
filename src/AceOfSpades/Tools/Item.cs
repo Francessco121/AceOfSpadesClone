@@ -152,6 +152,7 @@ namespace AceOfSpades.Tools
 
         public virtual void Draw(ItemViewbob viewbob)
         {
+            Renderer.Lighting = OwnerPlayer.Lighting;
             Renderer.RenderFront = !OwnerPlayer.IsRenderingThirdperson;
             Renderer.WorldMatrix = CalculateWorldMatrix(viewbob);
         }

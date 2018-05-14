@@ -36,6 +36,8 @@ namespace AceOfSpades.Characters
         public bool IsStrafing { get; protected set; }
         public int StrafeDir { get; protected set; }
 
+        public float Lighting { get; private set; }
+
         public PlayerDamage LastDamage { get; protected set; }
 
         public List<Vector3> HitFeedbackPositions { get; }
@@ -202,9 +204,35 @@ namespace AceOfSpades.Characters
             CharacterController.CanStep = !CharacterController.IsCrouching && !IsWalking;
 
             if (!GlobalNetwork.IsServer)
+            {
                 UpdateWorldModel();
 
+                Vector3 center = Transform.Position + Size / 2f;
+
+                IndexPosition chunkIndex = new IndexPosition(
+                    (int)(center.X / Chunk.UNIT_HSIZE),
+                    (int)(center.Y / Chunk.UNIT_VSIZE),
+                    (int)(center.Z / Chunk.UNIT_HSIZE)
+                );
+
+                if (World.Terrain.TryGetChunk(chunkIndex, out Chunk chunk))
+                {
+                    int blockX = (int)(center.X / Block.CUBE_SIZE) - (chunkIndex.X * Chunk.HSIZE);
+                    int blockY = (int)(center.Y / Block.CUBE_SIZE) - (chunkIndex.Y * Chunk.VSIZE);
+                    int blockZ = (int)(center.Z / Block.CUBE_SIZE) - (chunkIndex.Z * Chunk.HSIZE);
+
+                    Lighting = chunk.Lighting.LightingAt(blockX, blockY, blockZ);
+                }
+            }
+
             base.Update(deltaTime);
+        }
+
+        protected override void Draw()
+        {
+            Renderer.Lighting = Lighting;
+
+            base.Draw();
         }
 
         void UpdateWorldModel()

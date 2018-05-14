@@ -18,6 +18,7 @@ namespace AceOfSpades.Graphics
         public bool ApplyNoLighting;
         public Color ColorOverlay = Color.White;
         public RenderPass? OnlyRenderFor;
+        public float Lighting = 1f;
 
         VoxelRenderer renderer;
 
