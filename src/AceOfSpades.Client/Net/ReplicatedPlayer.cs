@@ -57,7 +57,7 @@ namespace AceOfSpades.Client.Net
             {
                 jumpAudioSource = new AudioSource(jumpAudioBuffer);
                 jumpAudioSource.Gain = 0.2f;
-                jumpAudioSource.MaxDistance = 1000f;
+                jumpAudioSource.MaxDistance = 100f;
             }
 
             AudioBuffer landAudioBuffer = AssetManager.LoadSound("Player/land.wav");
@@ -66,11 +66,11 @@ namespace AceOfSpades.Client.Net
             {
                 landAudioSource = new AudioSource(landAudioBuffer);
                 landAudioSource.Gain = 0.2f;
-                landAudioSource.MaxDistance = 100f;
+                landAudioSource.MaxDistance = 120f;
             }
 
             walkingAudioSource = new CyclicAudioSource("Player/footstep.wav", 1, 0f,
-                relative: false, maxDistance: 150f);
+                relative: false, maxDistance: 100f);
 
             runningAudioSource = new CyclicAudioSource("Player/run.wav", 1, 0f,
                 relative: false, maxDistance: 200f);
