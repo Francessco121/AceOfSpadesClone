@@ -553,7 +553,8 @@ namespace AceOfSpades.Client.Net
             }
 
             // Show the leaderboard via user input
-            leaderboard.Visible = Input.GetControl("ShowLeaderboard");
+            if (leaderboard != null)
+                leaderboard.Visible = Input.GetControl("ShowLeaderboard");
 
             // Read terrain changes
             if (client != null && snapshotComponent.WorldSnapshot != null)
