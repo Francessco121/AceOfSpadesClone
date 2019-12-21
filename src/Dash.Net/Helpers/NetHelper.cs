@@ -15,13 +15,13 @@ namespace Dash.Net
         /// <returns>This computers internal address.</returns>
         public static IPAddress GetInternalIP()
         {
-            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+            // See https://stackoverflow.com/a/27376368
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.IP))
+            {
+                socket.Connect("1.1.1.1", 65530);
 
-            foreach (IPAddress address in host.AddressList)
-                if (address.AddressFamily == AddressFamily.InterNetwork)
-                    return address;
-
-            return null;
+                return ((IPEndPoint)socket.LocalEndPoint).Address;
+            }
         }
 
         /// <summary>
