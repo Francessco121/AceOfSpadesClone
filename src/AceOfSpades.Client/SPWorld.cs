@@ -28,7 +28,7 @@ namespace AceOfSpades.Client
         public SPWorld(MasterRenderer renderer)
             : base(renderer)
         {
-            WorldDescription desc = LoadFromFile("default");
+            WorldDescription desc = LoadFromFile(Program.GetConfigString("Singleplayer/world"));
 
             Vector3 spawnPos = new Vector3(100, 400, 100);
 
