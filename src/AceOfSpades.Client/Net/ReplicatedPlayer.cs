@@ -107,7 +107,8 @@ namespace AceOfSpades.Client.Net
                 ItemManager.UpdateReplicated(deltaTime);
 
                 // Handle jump
-                jumpAudioSource.Position = Transform.Position;
+                if (jumpAudioSource != null)
+                    jumpAudioSource.Position = Transform.Position;
 
                 if (jump)
                 {
@@ -116,7 +117,8 @@ namespace AceOfSpades.Client.Net
                 }
 
                 // Handle landing
-                landAudioSource.Position = Transform.Position;
+                if (landAudioSource != null)
+                    landAudioSource.Position = Transform.Position;
 
                 if (land)
                 {
