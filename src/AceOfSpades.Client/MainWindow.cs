@@ -120,6 +120,17 @@ namespace AceOfSpades.Client
                     Camera.Active.ArcBallMouseSensitivity = arcBallSens.Value;
                 }
             }
+
+            ConfigSection audio = Program.ConfigFile.GetSection("Audio");
+
+            if (audio == null)
+            {
+                Camera.Active.AudioListener.Gain = 0.5f;
+            }
+            else
+            {
+                Camera.Active.AudioListener.Gain = audio.GetFloat("volume") ?? 0.5f;
+            }
         }
 
         protected override void Load()
@@ -134,8 +145,6 @@ namespace AceOfSpades.Client
 
             // 1 meter = 1 block
             Camera.Active.AudioListener.EfxMetersPerUnit = 1f / Block.CUBE_SIZE;
-
-            Camera.Active.AudioListener.Gain = 0.5f;
 
             LoadFromConfig();
 
