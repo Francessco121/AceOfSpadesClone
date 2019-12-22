@@ -22,7 +22,9 @@ namespace AceOfSpades.Client
             set { Renderer.Sky.currentHour = value; }
         }
 
-        public SPPlayer Player { get; }
+        public SPPlayer Player { get; private set; }
+
+        Vector3 spawnPos;
         HUD hud;
 
         public SPWorld(MasterRenderer renderer)
@@ -30,7 +32,7 @@ namespace AceOfSpades.Client
         {
             WorldDescription desc = LoadFromFile(Program.GetConfigString("Singleplayer/world"));
 
-            Vector3 spawnPos = new Vector3(100, 400, 100);
+            spawnPos = new Vector3(100, 400, 100);
 
             var commandposts = desc.GetObjectsByTag("CommandPost");
             foreach (WorldObjectDescription ob in commandposts)
@@ -78,15 +80,32 @@ namespace AceOfSpades.Client
         {
             base.Explode(explosion);
 
+            // Shake camera
             float distToCam = (explosion.Origin - Camera.Active.Position).Length;
             float factor = 5f / (distToCam * 0.3f); // maxShake / (distToCam * falloff)
             if (factor > 0.15f) // factor > minShake
                 Player.ShakeCamera(0.5f, factor);
 
+            // Damage player
             PlayerRaycastResult eResult = RaycastPlayer(explosion.Origin, Player, explosion.PlayerRadius);
             if (eResult.Intersects)
             {
-                float damage = explosion.Damage / (eResult.IntersectionDistance.Value * explosion.DamageFalloff);
+                /*
+                    Curve:
+                    max(min((fa/max(x,0)) - (fa/d), a), 0)
+                    where f = falloff rate, a = max damage, d = max distance,
+                        x = distance
+                */
+
+                //float damage = MathHelper.Clamp(
+                //    explosion.Damage / (eResult.IntersectionDistance.Value * explosion.DamageFalloff),
+                //    0, explosion.Damage);
+
+                float damage = explosion.Damage * (float)Math.Cos(eResult.IntersectionDistance.Value / ((2 * explosion.PlayerRadius) / Math.PI));
+
+                //float fa = explosion.DamageFalloff * explosion.Damage;
+                // float damage = MathHelper.Clamp((fa / eResult.IntersectionDistance.Value) - (fa / 200f), 0, explosion.Damage);
+
                 Player.Damage(damage, "Explosion");
             }
         }
@@ -102,6 +121,20 @@ namespace AceOfSpades.Client
             {
                 Player.CharacterController.IsStatic = !Terrain.Ready;
                 hud.Update(deltaTime);
+
+                if (Player.Health <= 0)
+                {
+                    // Respawn player
+                    RemoveGameObject(Player);
+                    Player.Dispose();
+
+                    Player = new SPPlayer(Renderer, this, Camera.Active, spawnPos, Team.A);
+                    AddGameObject(Player);
+
+                    hud.Player = Player;
+
+                    Player.AttachCamera();
+                }
             }
 
             base.Update(deltaTime);

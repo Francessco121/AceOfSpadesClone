@@ -1,6 +1,7 @@
 ﻿using AceOfSpades.Characters;
 using AceOfSpades.Tools;
 using Dash.Engine;
+using Dash.Engine.Audio;
 using Dash.Engine.Diagnostics;
 using Dash.Engine.Graphics;
 using Dash.Engine.Physics;
@@ -31,12 +32,26 @@ namespace AceOfSpades.Client
             }
         }
 
+        const float REFRESH_COOLDOWN = 1f;
+
+        float refreshCooldown;
+
         CameraFX camfx;
         Camera camera;
         bool thirdPerson;
+        bool lastGrounded = true;
 
         Vector3 startLocation;
         Intel intel;
+
+        bool isDisposed;
+
+        readonly AudioSource hitAudioSource;
+        readonly AudioSource flashlightAudioSource;
+        readonly AudioSource jumpAudioSource;
+        readonly AudioSource landAudioSource;
+        readonly CyclicAudioSource walkingAudioSource;
+        readonly CyclicAudioSource runningAudioSource;
 
         public SPPlayer(MasterRenderer renderer, World world, Camera camera, Vector3 position, Team team) 
             : base(renderer, world, camera, position, team)
@@ -61,6 +76,45 @@ namespace AceOfSpades.Client
             NumMelons = MAX_MELONS;
 
             CharacterController.OnCollision += CharacterController_OnCollision;
+
+            AudioBuffer hitAudioBuffer = AssetManager.LoadSound("Impacts/hit-player-local.wav");
+
+            if (hitAudioBuffer != null)
+            {
+                hitAudioSource = new AudioSource(hitAudioBuffer);
+                hitAudioSource.IsSourceRelative = true;
+                hitAudioSource.Gain = 0.2f;
+            }
+
+            AudioBuffer flashlightAudioBuffer = AssetManager.LoadSound("Player/flashlight.wav");
+
+            if (flashlightAudioBuffer != null)
+            {
+                flashlightAudioSource = new AudioSource(flashlightAudioBuffer);
+                flashlightAudioSource.IsSourceRelative = true;
+                flashlightAudioSource.Gain = 0.2f;
+            }
+
+            AudioBuffer jumpAudioBuffer = AssetManager.LoadSound("Player/jump.wav");
+
+            if (jumpAudioBuffer != null)
+            {
+                jumpAudioSource = new AudioSource(jumpAudioBuffer);
+                jumpAudioSource.IsSourceRelative = true;
+                jumpAudioSource.Gain = 0.2f;
+            }
+
+            AudioBuffer landAudioBuffer = AssetManager.LoadSound("Player/land.wav");
+
+            if (landAudioBuffer != null)
+            {
+                landAudioSource = new AudioSource(landAudioBuffer);
+                landAudioSource.IsSourceRelative = true;
+                landAudioSource.Gain = 0.2f;
+            }
+
+            walkingAudioSource = new CyclicAudioSource("Player/footstep.wav", 8, 0f);
+            runningAudioSource = new CyclicAudioSource("Player/run.wav", 12, 0f);
         }
 
         private void CharacterController_OnCollision(object sender, PhysicsBodyComponent e)
@@ -75,7 +129,61 @@ namespace AceOfSpades.Client
                     {
                         DashCMD.WriteLine("[SPPlayer] Picked up the intel", ConsoleColor.Green);
                         this.intel = intel;
+                        intel.IsIconVisible = false;
                     }
+                }
+            }
+
+            CommandPost commandPost = e.GameObject as CommandPost;
+
+            if (commandPost != null)
+            {
+                if (commandPost.Team == Team)
+                {
+                    Refresh();
+
+                    if (intel != null)
+                    {
+                        intel.Return();
+                        intel.IsIconVisible = true;
+                        intel = null;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Refills the player's ammo and blocks if the refresh cooldown has passed.
+        /// </summary>
+        void Refresh()
+        {
+            if (refreshCooldown <= 0)
+            {
+                if (Health < MAX_HEALTH)
+                {
+                    refreshCooldown = REFRESH_COOLDOWN;
+                    Health = MAX_HEALTH;
+                }
+
+                if (ItemManager.RefillAllGuns())
+                    refreshCooldown = REFRESH_COOLDOWN;
+
+                if (NumGrenades < MAX_GRENADES)
+                {
+                    NumGrenades = MAX_GRENADES;
+                    refreshCooldown = REFRESH_COOLDOWN;
+                }
+
+                if (NumBlocks < MAX_BLOCKS)
+                {
+                    NumBlocks = MAX_BLOCKS;
+                    refreshCooldown = REFRESH_COOLDOWN;
+                }
+
+                if (NumMelons < MAX_MELONS)
+                {
+                    NumMelons = MAX_MELONS;
+                    refreshCooldown = REFRESH_COOLDOWN;
                 }
             }
         }
@@ -84,7 +192,8 @@ namespace AceOfSpades.Client
         {
             if (intel != null)
             {
-                intel.Drop();
+                intel.Drop(yeet: true);
+                intel.IsIconVisible = true;
                 intel = null;
                 DashCMD.WriteLine("[SPPlayer] Dropped the intel", ConsoleColor.Green);
             }
@@ -110,6 +219,26 @@ namespace AceOfSpades.Client
             Camera.Active.SmoothCamera = false;
             Input.IsCursorLocked = true;
             Input.IsCursorVisible = false;
+        }
+
+        protected override void OnDamaged(float damage)
+        {
+            hitAudioSource?.Play();
+
+            if (!camfx.IsShaking)
+                camfx.ShakeCamera(0.2f, 0.05f);
+
+            if (Health <= 0)
+                DropIntel();
+
+            base.OnDamaged(damage);
+        }
+
+        protected override void OnJump()
+        {
+            jumpAudioSource?.Play();
+
+            base.OnJump();
         }
 
         protected override void Update(float deltaTime)
@@ -161,9 +290,28 @@ namespace AceOfSpades.Client
             {
                 if (Input.GetKeyDown(Key.C))
                     IsRenderingThirdperson = !IsRenderingThirdperson;
+
                 if (Input.GetControlDown("ToggleFlashlight"))
+                {
                     flashlight.Visible = !flashlight.Visible;
+                    flashlightAudioSource?.Play();
+                }
             }
+
+            // Handle landing
+            if (CharacterController.IsGrounded && !lastGrounded)
+            {
+                landAudioSource?.Play();
+            }
+
+            // Handle walking/running
+            walkingAudioSource.IsPlaying = CharacterController.IsGrounded && CharacterController.IsMoving && !IsSprinting;
+            walkingAudioSource.IterationLength = (1f / Viewbob.GetSpeed()) * 2f;
+            walkingAudioSource.Update(deltaTime);
+
+            runningAudioSource.IsPlaying = CharacterController.IsGrounded && CharacterController.IsMoving && IsSprinting;
+            runningAudioSource.IterationLength = (1f / Viewbob.GetSpeed()) * 2f;
+            runningAudioSource.Update(deltaTime);
 
             // Ensure the firstperson offset is correct (this changes when crouching)
             camera.FirstPersonLockOffset = new Vector3(0, Size.Y / 2f - 1.1f, 0);
@@ -173,6 +321,13 @@ namespace AceOfSpades.Client
                 ? Transform.Position + Camera.Active.FirstPersonLockOffset 
                 : camera.Position;
             flashlight.Direction = -camera.LookVector;
+
+            // Store grounded state
+            lastGrounded = CharacterController.IsGrounded;
+
+            // Process refresh cooldown
+            if (refreshCooldown > 0)
+                refreshCooldown -= deltaTime;
 
             base.Update(deltaTime);
 
@@ -209,6 +364,23 @@ namespace AceOfSpades.Client
             // Apply camera effects (yes this has to be last)
             camfx.Apply();
             base.Draw();
+        }
+
+        public override void Dispose()
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+
+                hitAudioSource?.Dispose();
+                flashlightAudioSource?.Dispose();
+                jumpAudioSource?.Dispose();
+                landAudioSource?.Dispose();
+                walkingAudioSource.Dispose();
+                runningAudioSource.Dispose();
+            }
+
+            base.Dispose();
         }
     }
 }

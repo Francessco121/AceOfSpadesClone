@@ -467,6 +467,7 @@ namespace AceOfSpades.Server
 
         public override void Explode(Explosion explosion)
         {
+            // Destroy terrain
             Vector3 origin = explosion.Origin;
             float radius = explosion.BlockRadius;
 
@@ -542,6 +543,7 @@ namespace AceOfSpades.Server
                     }
                 }
 
+            // Fling other grenades
             radius = explosion.PlayerRadius;
 
             for (int i = 0; i < grenades.Count; i++)

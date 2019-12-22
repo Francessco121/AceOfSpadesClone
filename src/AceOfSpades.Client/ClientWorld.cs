@@ -76,6 +76,7 @@ namespace AceOfSpades.Client
 
         public override void Explode(Explosion explosion)
         {
+            // Destroy terrain
             Vector3 origin = explosion.Origin;
             float radius = explosion.BlockRadius;
 
@@ -100,22 +101,27 @@ namespace AceOfSpades.Client
                             if (!chunk.IsBlockCoordInRange(nx, ny, nz))
                                 continue;
 
-                            Vector3 apos = Chunk.ChunkBlockToWorldCoords(ncpos, new IndexPosition(nx, ny, nz));
+                            Vector3 apos = Chunk.ChunkBlockToWorldCoords(ncpos, new IndexPosition(nx, ny, nz))
+                                - Block.HALF_CUBE_3D_SIZE;
 
-                            if (Maths.Distance(apos, origin) > radius)
+                            float dist = Maths.Distance(apos, origin);
+                            if (dist > radius)
                                 continue;
+
+                            int damage = (int)(14 * (1f - (dist / radius)));
 
                             if (ncpos != cpos)
                             {
                                 Chunk otherChunk;
                                 if (Terrain.Chunks.TryGetValue(ncpos, out otherChunk))
-                                    otherChunk.RemoveBlock(new IndexPosition(nx, ny, nz));
+                                    otherChunk.DamageBlock(new IndexPosition(nx, ny, nz), damage);
                             }
                             else
-                                chunk.RemoveBlock(new IndexPosition(nx, ny, nz));
+                                chunk.DamageBlock(new IndexPosition(nx, ny, nz), damage);
                         }
             }
 
+            // Fling other grenades
             radius = explosion.PlayerRadius;
 
             for (int i = 0; i < grenades.Count; i++)

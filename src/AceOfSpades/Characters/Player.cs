@@ -117,6 +117,7 @@ namespace AceOfSpades.Characters
                 LastDamage = new PlayerDamage(LastDamage, damage, cause);
 
             Health -= damage;
+            OnDamaged(damage);
         }
 
         public void Damage(Player attacker, float damage, string cause)
@@ -127,6 +128,7 @@ namespace AceOfSpades.Characters
                 LastDamage = new PlayerDamage(LastDamage, attacker, this, damage, cause);
 
             Health -= damage;
+            OnDamaged(damage);
         }
 
         public OrientatedBoundingBox GetOrientatedBoundingBox()
@@ -148,6 +150,8 @@ namespace AceOfSpades.Characters
         }
 
         protected virtual void OnJump() { }
+
+        protected virtual void OnDamaged(float damage) { }
 
         protected void UpdateMoveVector(Vector3 inputMove, bool tryJump, bool sprint, bool walk, float speedMultiplier = 1f)
         {
