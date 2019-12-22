@@ -92,6 +92,33 @@ namespace AceOfSpades.Client
             {
                 SetVSync(graphics.GetBoolean("vsync") ?? false);
                 TargetFrameRate = graphics.GetInteger("target-fps") ?? 60;
+
+                int? fov = graphics.GetInteger("fov");
+
+                if (fov != null)
+                {
+                    Camera.Active.DefaultFOV = fov.Value;
+                    Camera.Active.FOV = fov.Value;
+                }
+            }
+
+            ConfigSection input = Program.ConfigFile.GetSection("Input");
+            if (input != null)
+            {
+                float? fpsSens = input.GetFloat("fps-mouse-sensitivity");
+                float? arcBallSens = input.GetFloat("free-cam-mouse-sensitivity");
+
+                if (fpsSens != null)
+                {
+                    Camera.Active.DefaultFPSMouseSensitivity = fpsSens.Value;
+                    Camera.Active.FPSMouseSensitivity = fpsSens.Value;
+                }
+
+                if (arcBallSens != null)
+                {
+                    Camera.Active.DefaultArcBallMouseSensitivity = arcBallSens.Value;
+                    Camera.Active.ArcBallMouseSensitivity = arcBallSens.Value;
+                }
             }
         }
 

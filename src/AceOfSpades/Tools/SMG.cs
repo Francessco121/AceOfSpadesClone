@@ -34,7 +34,7 @@ namespace AceOfSpades.Tools
                 VerticalRecoil = 0.9f,
                 PrimaryFireDelay = 0.1f,
                 ModelKickback = 0.35f,
-                AimFOV = 55,
+                AimFOVScale = 55f / 70f,
                 AimMouseSensitivityScale = 0.75f,
                 ReloadTime = 3f,
                 PrimaryFireAudio = new GunAudioConfig

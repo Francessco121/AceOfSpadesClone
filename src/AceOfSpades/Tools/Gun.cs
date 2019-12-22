@@ -157,7 +157,7 @@ namespace AceOfSpades.Tools
             if (GlobalNetwork.IsClient)
             {
                 Camera cam = Dash.Engine.Graphics.Camera.Active;
-                cam.FOV = 70;
+                cam.FOV = cam.DefaultFOV;
                 cam.FPSMouseSensitivity = cam.DefaultFPSMouseSensitivity;
 
                 reloadAudioSource?.Stop();
@@ -304,13 +304,13 @@ namespace AceOfSpades.Tools
                 if (OwnerPlayer.IsAiming)
                 {
                     modelAnim.SetTarget(AimModelOffset);
-                    fovAnim.SetTarget(GunConfig.AimFOV);
+                    fovAnim.SetTarget(cam.DefaultFOV * GunConfig.AimFOVScale);
                     cam.FPSMouseSensitivity = cam.DefaultFPSMouseSensitivity * GunConfig.AimMouseSensitivityScale;
                 }
                 else
                 {
                     modelAnim.SetTarget(normalModelOffset);
-                    fovAnim.SetTarget(70);
+                    fovAnim.SetTarget(cam.DefaultFOV);
                     cam.FPSMouseSensitivity = cam.DefaultFPSMouseSensitivity;
                 }
 

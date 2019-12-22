@@ -18,7 +18,7 @@ namespace AceOfSpades.Tools
         public float BulletSpread = 0.01f;
         public float AimBulletSpread = 0.005f;
 
-        public float AimFOV = 60;
+        public float AimFOVScale = 60f / 70f;
         public float AimMouseSensitivityScale = 0.5f;
 
         public float VerticalRecoil = 1;

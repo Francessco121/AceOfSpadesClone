@@ -12,7 +12,7 @@ namespace AceOfSpades.Tools
 {
     public class MelonLauncher : Weapon
     {
-        const float AIM_FOV = 40;
+        const float AIM_FOV_SCALE = 40f / 70f;
         const float AIM_MOUSE_SENSITIVITY_SCALE = 0.6f;
 
         Vector3 aimModelOffset;
@@ -83,7 +83,7 @@ namespace AceOfSpades.Tools
             if (GlobalNetwork.IsClient)
             {
                 Camera cam = Dash.Engine.Graphics.Camera.Active;
-                cam.FOV = 70;
+                cam.FOV = cam.DefaultFOV;
                 cam.FPSMouseSensitivity = cam.DefaultFPSMouseSensitivity;
             }
 
@@ -161,13 +161,13 @@ namespace AceOfSpades.Tools
                 if (OwnerPlayer.IsAiming)
                 {
                     modelAnim.SetTarget(aimModelOffset);
-                    fovAnim.SetTarget(AIM_FOV);
+                    fovAnim.SetTarget(cam.DefaultFOV * AIM_FOV_SCALE);
                     cam.FPSMouseSensitivity = cam.DefaultFPSMouseSensitivity * AIM_MOUSE_SENSITIVITY_SCALE;
                 }
                 else
                 {
                     modelAnim.SetTarget(normalModelOffset);
-                    fovAnim.SetTarget(70);
+                    fovAnim.SetTarget(cam.DefaultFOV);
                     cam.FPSMouseSensitivity = cam.DefaultFPSMouseSensitivity;
                 }
 
