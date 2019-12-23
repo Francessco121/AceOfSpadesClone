@@ -8,6 +8,9 @@ All commits after commit [6f5079](https://github.com/Francessco121/AceOfSpadesCl
 
 [See the AoS page on my website](https://francessco.us/projects/ace-of-spades-clone) for more information.
 
+## Download
+Binary releases of the game client, server, and world editor [can be found in the GitHub releases](https://github.com/Francessco121/AceOfSpadesClone/releases).
+
 ## Content Notice
 
 ### Textures
