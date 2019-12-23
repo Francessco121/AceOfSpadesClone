@@ -51,10 +51,13 @@ namespace AceOfSpades.Graphics
 
         protected override void Draw()
         {
-            if (Image != null)
+            if (!renderer.Gui.Hide)
             {
-                Vector3 worldPosition = Transform.Position + Offset;
-                Show3DIcon(worldPosition);
+                if (Image != null)
+                {
+                    Vector3 worldPosition = Transform.Position + Offset;
+                    Show3DIcon(worldPosition);
+                }
             }
 
             base.Draw();

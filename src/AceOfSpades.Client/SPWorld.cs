@@ -142,7 +142,8 @@ namespace AceOfSpades.Client
 
         public override void Draw()
         {
-            hud.Draw(Renderer.Sprites.SpriteBatch);
+            if (!Renderer.Gui.Hide)
+                hud.Draw(Renderer.Sprites.SpriteBatch);
 
             base.Draw();
         }

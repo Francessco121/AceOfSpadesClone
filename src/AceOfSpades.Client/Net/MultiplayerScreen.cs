@@ -606,21 +606,24 @@ namespace AceOfSpades.Client.Net
                 // Draw the world
                 World.Draw();
 
-                if (World.Terrain != null)
+                if (!Renderer.Gui.Hide)
                 {
-                    // Show the name of the player the mouse is over
-                    DrawMousedOverPlayerName();
-                }
+                    if (World.Terrain != null)
+                    {
+                        // Show the name of the player the mouse is over
+                        DrawMousedOverPlayerName();
+                    }
 
-                // Show the current message
-                if (messageTime > 0)
-                {
-                    font.DrawString(message, Renderer.ScreenWidth / 2f, 0, 
-                        Renderer.Sprites.SpriteBatch, TextAlign.TopRight, Color.White, new Color(0, 0, 0, 0.6f));
-                }
+                    // Show the current message
+                    if (messageTime > 0)
+                    {
+                        font.DrawString(message, Renderer.ScreenWidth / 2f, 0,
+                            Renderer.Sprites.SpriteBatch, TextAlign.TopRight, Color.White, new Color(0, 0, 0, 0.6f));
+                    }
 
-                announcementLabel.Visible = announcementTime > 0;
-                hud.Draw(Renderer.Sprites.SpriteBatch);
+                    announcementLabel.Visible = announcementTime > 0;
+                    hud.Draw(Renderer.Sprites.SpriteBatch);
+                }
             }
         }
 
