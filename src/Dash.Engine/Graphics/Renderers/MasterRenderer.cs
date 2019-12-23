@@ -93,6 +93,8 @@ namespace Dash.Engine.Graphics
 
         RenderPipeline activePipeline;
         ScreenshotRequest screenshotRequest;
+        int lastScreenWidth;
+        int lastScreenHeight;
 
         public MasterRenderer(int screenWidth, int screenHeight, GraphicsOptions options = null)
         {
@@ -187,7 +189,18 @@ namespace Dash.Engine.Graphics
             screenshotRequest = new ScreenshotRequest(width, height, outFilePath);
         }
 
-        public void Prepare() { }
+        public void Prepare(float deltaTime)
+        {
+            if (screenshotRequest != null)
+            {
+                lastScreenWidth = ScreenWidth;
+                lastScreenHeight = ScreenHeight;
+
+                OnResize(screenshotRequest.RenderWidth, screenshotRequest.RenderHeight);
+                Update(deltaTime);
+                Camera.Active.Update(deltaTime);
+            }
+        }
 
         public void OnResize(int width, int height)
         {
@@ -223,14 +236,8 @@ namespace Dash.Engine.Graphics
 
         public void Render(float deltaTime)
         {
-            int lastScreenWidth = ScreenWidth;
-            int lastScreenHeight = ScreenHeight;
-
             if (screenshotRequest != null)
             {
-                OnResize(screenshotRequest.RenderWidth, screenshotRequest.RenderHeight);
-                Update(deltaTime);
-                Camera.Active.Update(deltaTime);
                 activePipeline.TakeScreenshot(screenshotRequest);
             }
 

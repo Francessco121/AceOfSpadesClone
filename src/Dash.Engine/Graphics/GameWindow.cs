@@ -272,7 +272,7 @@ namespace Dash.Engine.Graphics
                     Input.End();
 
                     // Draw
-                    Renderer.Prepare();
+                    Renderer.Prepare(dt);
                     Draw(dt);
                     Renderer.Render(dt);
 

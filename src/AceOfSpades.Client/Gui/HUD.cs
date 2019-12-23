@@ -268,36 +268,6 @@ namespace AceOfSpades.Client.Gui
                     
                     ammoLabel.Text = text;
                     ammoLabel.Visible = ShowCharacterInformation;
-
-                    float paletteX = renderer.ScreenWidth - 330;
-                    float paletteY = renderer.ScreenHeight - 200;
-
-                    for (int x = 0; x < BlockItem.PaletteWidth; x++)
-                        for (int y = 0; y < BlockItem.PaletteHeight; y++)
-                        {
-                            Rectangle backClip;
-                            Rectangle borderClip;
-                            if (bitem.ColorX == x && bitem.ColorY == y)
-                            {
-                                backClip = new Rectangle(0, 16, 16, 16);
-                                borderClip = new Rectangle(16, 16, 16, 16);
-                            }
-                            else
-                            {
-                                backClip = new Rectangle(0, 0, 16, 16);
-                                borderClip = new Rectangle(16, 0, 16, 16);
-                            }
-
-                            renderer.Sprites.SpriteBatch.Draw(palletTex,
-                                new Rectangle(x * 15 + paletteX, y * 15 + paletteY, 22, 22),
-                                backClip,
-                                bitem.Colors[y, x]);
-
-                            renderer.Sprites.SpriteBatch.Draw(palletTex,
-                                new Rectangle(x * 15 + paletteX, y * 15 + paletteY, 22, 22),
-                                borderClip,
-                                Color.White);
-                        }
                 }
                 else
                     ammoLabel.Visible = false;
@@ -434,6 +404,49 @@ namespace AceOfSpades.Client.Gui
                             INDICATOR_LENGTH, INDICATOR_WIDTH),
                         null, Color.White, angle,
                         new Vector2(INDICATOR_HALF_LENGTH, INDICATOR_HALF_WIDTH));
+                }
+            }
+
+            if (Player != null)
+            {
+                ItemManager itemManager = Player.ItemManager;
+
+                if (itemManager.SelectedItem != null && itemManager.SelectedItem.Type.HasFlag(ItemType.BlockItem))
+                {
+                    BlockItem bitem = (BlockItem)itemManager.SelectedItem;
+
+                    float paletteX = renderer.ScreenWidth - 330;
+                    float paletteY = renderer.ScreenHeight - 200;
+
+                    for (int x = 0; x < BlockItem.PaletteWidth; x++)
+                        for (int y = 0; y < BlockItem.PaletteHeight; y++)
+                        {
+                            Rectangle backClip;
+                            Rectangle borderClip;
+                            if (bitem.ColorX == x && bitem.ColorY == y)
+                            {
+                                backClip = new Rectangle(0, 16, 16, 16);
+                                borderClip = new Rectangle(16, 16, 16, 16);
+                            }
+                            else
+                            {
+                                backClip = new Rectangle(0, 0, 16, 16);
+                                borderClip = new Rectangle(16, 0, 16, 16);
+                            }
+
+                            if (!renderer.Gui.Hide)
+                            {
+                                renderer.Sprites.SpriteBatch.Draw(palletTex,
+                                    new Rectangle(x * 15 + paletteX, y * 15 + paletteY, 22, 22),
+                                    backClip,
+                                    bitem.Colors[y, x]);
+
+                                renderer.Sprites.SpriteBatch.Draw(palletTex,
+                                    new Rectangle(x * 15 + paletteX, y * 15 + paletteY, 22, 22),
+                                    borderClip,
+                                    Color.White);
+                            }
+                        }
                 }
             }
         }
